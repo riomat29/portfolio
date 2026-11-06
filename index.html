@@ -26,9 +26,9 @@
 /* Layout: fixed 3D scene behind a single scrolling column; sections are translucent panels over it. Dark-first, light via tokens. */
 :root{--live:#4ade80;--bg:#080d14;--panel:#111a25;--line:#223041;--txt:#e6edf3;--mut:#93a4b8;--acc:#38bdf8;--acc2:#fb923c;--accfg:#04202e;--glow:56,189,248;--vw1:#0f2233;--vw2:#0a1018;--r:16px;
 --f-display:"Chakra Petch","Segoe UI",system-ui,sans-serif;--f-body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;--f-mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;color-scheme:dark}
-@media (prefers-color-scheme:light){:root:not([data-theme="dark"]){--bg:#f1f8f2;--panel:#ffffff;--line:#d3e5d7;--txt:#14231a;--mut:#4a5f50;--live:#15803d;--acc:#15803d;--acc2:#4d8a1f;--accfg:#ffffff;--glow:21,128,61;color-scheme:light}}
+@media (prefers-color-scheme:light){:root:not([data-theme="dark"]){--bg:#d1e0d5;--panel:#eef5f0;--line:#a9c2b0;--txt:#14231a;--mut:#3d5144;--live:#146c33;--acc:#146c33;--acc2:#3b7316;--accfg:#ffffff;--glow:21,128,61;color-scheme:light}}
 :root[data-theme="red"]{--bg:#14161a;--panel:#1d2025;--line:#33373e;--txt:#eceef1;--mut:#a3a9b3;--acc:#ef4444;--acc2:#b4bac4;--accfg:#0f1114;--glow:239,68,68;--vw1:#2a2d33;--vw2:#16181c;color-scheme:dark}
-:root[data-theme="light"]{--bg:#f1f8f2;--panel:#ffffff;--line:#d3e5d7;--txt:#14231a;--mut:#4a5f50;--live:#15803d;--acc:#15803d;--acc2:#4d8a1f;--accfg:#ffffff;--glow:21,128,61;color-scheme:light}
+:root[data-theme="light"]{--bg:#d1e0d5;--panel:#eef5f0;--line:#a9c2b0;--txt:#14231a;--mut:#3d5144;--live:#146c33;--acc:#146c33;--acc2:#3b7316;--accfg:#ffffff;--glow:21,128,61;color-scheme:light}
 *{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:76px}
 body{margin:0;background:var(--bg);color:var(--txt);font:16px/1.65 var(--f-body);overflow-x:hidden}
 body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:70;background:var(--bg)}
@@ -111,7 +111,7 @@ details.job summary::after{content:"+";float:right;color:var(--mut);font-family:
 #modal{position:fixed;inset:0;z-index:90;background:rgba(3,8,14,.82);display:none;align-items:center;justify-content:center;padding:max(16px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(16px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));backdrop-filter:blur(4px)}
 #modal.open{display:flex}
 #m-box{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);width:min(1020px,100%);max-height:92vh;overflow:auto;display:grid;grid-template-columns:1.35fr 1fr}
-#m-viewwrap{position:relative;min-height:400px;background:linear-gradient(160deg,var(--vw1),var(--vw2))}
+#m-viewwrap{position:sticky;top:0;align-self:start;height:min(92vh,1000px);min-height:400px;background:linear-gradient(160deg,var(--vw1),var(--vw2))}
 #m-view{position:absolute;inset:0}#m-view canvas{width:100%;height:100%;display:block}
 #m-ctrl{position:absolute;left:12px;bottom:12px;display:flex;gap:8px;z-index:3;flex-wrap:wrap;align-items:center}
 #m-ctrl button{cursor:pointer;background:rgba(10,16,24,.75);border:1px solid #2b3d52;color:#e6edf3;border-radius:999px;padding:6px 13px;font:inherit;font-size:13px}
@@ -123,7 +123,7 @@ details.job summary::after{content:"+";float:right;color:var(--mut);font-family:
 #m-close{margin-left:auto}
 .nowebgl::after{content:"3D preview unavailable on this device";position:absolute;inset:0;display:grid;place-items:center;color:var(--mut);font-size:13px;text-align:center;padding:12px}
 footer{padding-block:40px;color:var(--mut);font-size:14px;border-top:1px solid var(--line);background:var(--bg)}
-@media(max-width:780px){#m-box{grid-template-columns:1fr}#m-viewwrap{min-height:320px}}
+@media(max-width:780px){#m-box{grid-template-columns:1fr}#m-viewwrap{position:relative;height:320px;min-height:320px}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}details.job.now::before{animation:none}.pill.live::before{animation:none}.typed::after{animation:none}}
 /* Touch feedback: every tab, chip and button glows while pressed, ripples from the touch point, then fades */
 html{-webkit-tap-highlight-color:transparent}
@@ -465,31 +465,65 @@ function buildPlaceholder(type) {
     g.add(at(box(3.2,.3,.9,BLUE),0,.5,0)); g.add(at(box(1,.35,.5,DK),.2,.8,0)); g.add(at(box(.15,.5,1.3,ORG),-1.7,.9,0)); g.add(at(box(.1,.1,1.5,ORG),1.8,.35,0));
     [[-1,-.6],[-1,.6],[1.1,-.6],[1.1,.6]].forEach(([x,z]) => { const w = at(cyl(.35,.3,DK),x,.35,z); w.rotation.x = Math.PI/2; g.add(w); });
   } else if (type === 'signal') {
-    // Four-way intersection: signal heads cycle NS / EW, cars stop on red
-    g.add(at(box(6.4,.06,1.3,0x334155),0,0,0)); g.add(at(box(1.3,.06,6.4,0x334155),0,0,0));
-    g.add(at(box(.08,.07,1.3,0xe2e8f0),0,.02,0)); g.add(at(box(1.3,.07,.08,0xe2e8f0),0,.02,0));
+    // Four-way intersection: protected (advanced) left phases, pedestrian crossings, signals cycle through a 20 s plan
+    const ROAD = 0x334155, PAINT = 0xe2e8f0;
+    g.add(at(box(6.4,.06,1.3,ROAD),0,0,0)); g.add(at(box(1.3,.06,6.4,ROAD),0,0,0));
+    [-2.9,-2.3,-1.7,1.7,2.3,2.9].forEach(d => { g.add(at(box(.3,.02,.05,0xfacc15),d,.04,0)); g.add(at(box(.05,.02,.3,0xfacc15),0,.04,d)); });
+    const zebra = (cx, cz, alongX) => { for (let i = 0; i < 6; i++) { const o = -.5 + i * .2; g.add(at(box(alongX ? .26 : .07, .02, alongX ? .07 : .26, PAINT), alongX ? cx : cx + o, .04, alongX ? cz + o : cz)); } };
+    zebra(1.05, 0, true); zebra(-1.05, 0, true); zebra(0, 1.05, false); zebra(0, -1.05, false);
     const lamp = c => new THREE.MeshStandardMaterial({ color: 0x1f2937, emissive: c, emissiveIntensity: 0, roughness: .3 });
     const L = { ns: [lamp(0xff2020), lamp(0xffc800), lamp(0x22dd55)], ew: [lamp(0xff2020), lamp(0xffc800), lamp(0x22dd55)] };
-    const head = (x, z, set) => { g.add(at(cyl(.04,1.1,0x94a3b8),x,.55,z)); g.add(at(box(.28,.82,.28,DK),x,1.3,z));
+    const arr = { ns: lamp(0x22dd55), ew: lamp(0x22dd55) };
+    const pedL = { ns: lamp(0xff2020), ew: lamp(0xff2020) };
+    const ash = new THREE.Shape(); ash.moveTo(-.09,0); ash.lineTo(0,.07); ash.lineTo(0,.03); ash.lineTo(.09,.03); ash.lineTo(.09,-.03); ash.lineTo(0,-.03); ash.lineTo(0,-.07); ash.closePath();
+    const aGeo = new THREE.ExtrudeGeometry(ash, { depth: .02, bevelEnabled: false }); aGeo.translate(0, 0, -.01);
+    const head = (x, z, set, am) => {
+      g.add(at(cyl(.04,1.1,0x94a3b8),x,.55,z)); g.add(at(box(.28,1.06,.28,DK),x,1.18,z));
       const ox = -Math.sign(x) * .15, oz = -Math.sign(z) * .15;
-      set.forEach((m, i) => { const y = 1.52 - i * .24; g.add(at(new THREE.Mesh(new THREE.SphereGeometry(.09,16,12), m), x + ox, y, z)); g.add(at(new THREE.Mesh(new THREE.SphereGeometry(.09,16,12), m), x, y, z + oz)); }); };
-    head(.95,.95,L.ns); head(-.95,-.95,L.ns); head(.95,-.95,L.ew); head(-.95,.95,L.ew);
-    const cars = [[0,-1,.32,BLUE],[0,1,-.32,ORG],[1,-1,-.32,ORG],[1,1,.32,BLUE]].map(([ax,dir,off,c],i) => {
-      const m = at(box(ax?.5:.28,.2,ax?.28:.5,c),0,.15,0); g.add(m); return { m, ax, dir, off, s: -3 + i*1.4 }; });
+      set.forEach((m, i) => { const y = 1.52 - i * .24; g.add(at(new THREE.Mesh(new THREE.SphereGeometry(.09,16,12), m), x + ox, y, z)); g.add(at(new THREE.Mesh(new THREE.SphereGeometry(.09,16,12), m), x, y, z + oz)); });
+      const a1 = at(new THREE.Mesh(aGeo, am), x, .8, z + oz * 1.1); g.add(a1);
+      const a2 = at(new THREE.Mesh(aGeo, am), x + ox * 1.1, .8, z); a2.rotation.y = Math.PI / 2; g.add(a2);
+    };
+    head(.95,.95,L.ns,arr.ns); head(-.95,-.95,L.ns,arr.ns); head(.95,-.95,L.ew,arr.ew); head(-.95,.95,L.ew,arr.ew);
+    [[.95,.95],[-.95,-.95],[.95,-.95],[-.95,.95]].forEach(([x, z]) => {
+      g.add(at(new THREE.Mesh(new THREE.SphereGeometry(.055,12,10), pedL.ns), x, .55, z - Math.sign(z) * .09));
+      g.add(at(new THREE.Mesh(new THREE.SphereGeometry(.055,12,10), pedL.ew), x - Math.sign(x) * .09, .45, z)); });
+    // Vehicles: one through car and one left-turning car per approach
+    const R = .6, XS = -.27, Z0 = .1, ZT = .33, X0 = -3.1, STOP = 1.65;
+    const sLen = XS - X0, aLen = R * Math.PI / 2, LEFT_LEN = sLen + aLen + 3, THRU_LEN = 6.2;
+    const pathL = s => { if (s <= sLen) return [X0 + s, Z0, 0]; s -= sLen; if (s <= aLen) { const a = s / R; return [XS + R * Math.sin(a), Z0 - R + R * Math.cos(a), a]; } s -= aLen; return [XS + R, Z0 - R - s, Math.PI / 2]; };
+    const apps = [[0,'ew'],[Math.PI,'ew'],[-Math.PI / 2,'ns'],[Math.PI / 2,'ns']];
+    const cols = [BLUE, ORG, 0x94a3b8, 0x22c55e];
+    const cars = [];
+    apps.forEach(([phi, axis], i) => [false, true].forEach((left, j) => {
+      const m = box(.5,.18,.26,cols[(i + j * 2) % 4]); m.position.y = .14; g.add(m);
+      cars.push({ m, phi, axis, left, s: (i * 1.3 + j * .7) % 1.6, v: 1.05 }); }));
+    // Pedestrians: walk along the crosswalk parallel to the green through traffic
+    const peds = [[1.05,0,'ns',0],[-1.05,0,'ns',1],[0,1.05,'ew',0],[0,-1.05,'ew',1]].map(([cx, cz, axis, par], i) => {
+      const p = new THREE.Group(); p.add(at(cyl(.045,.2,[ORG,BLUE,ORG,BLUE][i]),0,.14,0)); p.add(at(new THREE.Mesh(new THREE.SphereGeometry(.05,12,10), mat(0xfde68a,.1,.6)),0,.3,0)); g.add(p);
+      return { p, cx, cz, axis, par }; });
     let last = 0;
     g.userData.tick = t => {
       const dt = Math.min(Math.max(t - last, 0), .1); last = t;
-      const ph = t % 12, nsG = ph < 4, nsY = ph >= 4 && ph < 5, ewG = ph >= 6 && ph < 10, ewY = ph >= 10 && ph < 11;
-      const set = (a, gr, ye) => a.forEach((m, i) => m.emissiveIntensity = (i === 0 ? !gr && !ye : i === 1 ? ye : gr) ? 1.6 : .04);
-      set(L.ns, nsG, nsY); set(L.ew, ewG, ewY);
+      const T = 20, ph = t % T, cyc = Math.floor(t / T);
+      const nsL = ph < 3, nsG = ph >= 3 && ph < 8, nsY = ph >= 8 && ph < 9, ewL = ph >= 10 && ph < 13, ewG = ph >= 13 && ph < 18, ewY = ph >= 18 && ph < 19;
+      const setL = (a, gr, ye) => a.forEach((m, i) => m.emissiveIntensity = (i === 0 ? !gr && !ye : i === 1 ? ye : gr) ? 1.6 : .04);
+      setL(L.ns, nsG, nsY); setL(L.ew, ewG, ewY); arr.ns.emissiveIntensity = nsL ? 1.8 : .04; arr.ew.emissiveIntensity = ewL ? 1.8 : .04;
+      const w0 = { ns: 3.2, ew: 13.2 }, WD = 4.2, walking = { ns: ph >= w0.ns && ph < w0.ns + WD, ew: ph >= w0.ew && ph < w0.ew + WD };
+      ['ns', 'ew'].forEach(k => { pedL[k].emissive.setHex(walking[k] ? 0x22dd55 : 0xff2020); pedL[k].emissiveIntensity = 1.4; });
+      const thru = { ns: nsG || nsY, ew: ewG || ewY }, lft = { ns: nsL, ew: ewL };
       cars.forEach(c => {
-        const go = c.ax ? (ewG || ewY) : (nsG || nsY); let n = c.s + dt * 1.1;
-        if (!go && c.s <= -1.1 && n > -1.1) n = -1.1;
-        c.s = n > 3 ? -3 : n;
-        const p = c.dir * c.s; if (c.ax) c.m.position.set(p, .15, c.off); else c.m.position.set(c.off, .15, p);
-      });
+        const go = c.left ? lft[c.axis] : thru[c.axis], len = c.left ? LEFT_LEN : THRU_LEN; let n = c.s + dt * c.v;
+        if (!go && c.s <= STOP && n > STOP) n = STOP;
+        if (n >= len) n = 0; c.s = n;
+        const [lx, lz, a] = c.left ? pathL(n) : [X0 + n, ZT, 0], cs = Math.cos(c.phi), sn = Math.sin(c.phi);
+        c.m.position.set(lx * cs + lz * sn, .14, -lx * sn + lz * cs); c.m.rotation.y = c.phi + a; });
+      peds.forEach(q => {
+        const p = Math.min(Math.max((ph - w0[q.axis]) / WD, 0), 1), flip = (cyc + q.par) % 2 ? -1 : 1, u = flip * (-.55 + 1.1 * p);
+        const bob = walking[q.axis] ? Math.abs(Math.sin(t * 9)) * .015 : 0;
+        if (q.axis === 'ns') q.p.position.set(q.cx, .04 + bob, u); else q.p.position.set(u, .04 + bob, q.cz); });
     };
-    g.userData.fit = 5.5;
+    g.userData.fit = 6.6;
   } else if (type === 'scooter') {
     g.add(at(box(2.4,.14,.7,BLUE),0,.35,0));
     const w1 = at(cyl(.3,.2,DK),-1.35,.3,0), w2 = at(cyl(.3,.2,DK),1.45,.3,0); w1.rotation.x = w2.rotation.x = Math.PI/2; g.add(w1); g.add(w2);
