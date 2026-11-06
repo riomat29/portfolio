@@ -260,7 +260,7 @@ const cf = $('#cform'); if (cf) cf.onsubmit = async e => { e.preventDefault(); c
   catch (err) { st.textContent = 'Could not send from here. Please use the email button above.'; } };
 
 /* ---------- Typed roles ---------- */
-(() => { const el = $('#typed'), roles = P.roles && P.roles.length ? P.roles : [P.title]; if (reduce) { el.textContent = roles[0]; return; }
+(() => { const el = $('#typed'), roles = P.roles && P.roles.length ? P.roles : [P.title]; if (reduce) { el.textContent = roles.join(' · '); return; }
   let r = 0, c = 0, del = false;
   (function tick(){ const w = roles[r]; c += del ? -1 : 1; el.textContent = w.slice(0, c); let t = del ? 35 : 70;
     if (!del && c === w.length) { del = true; t = 1500; } else if (del && c === 0) { del = false; r = (r + 1) % roles.length; t = 300; } setTimeout(tick, t); })(); })();

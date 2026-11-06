@@ -19,7 +19,7 @@ window.PORTFOLIO = {
     linkedin: "http://www.linkedin.com/in/rijzmatw",
     github: "https://riomat29.github.io/portfolio/",
     // Phone number intentionally NOT published on a public site (spam / privacy).
-    roles: ["Mechanical Engineer", "Robotics & Automation", "PLC & Robot Cell Commissioning", "Toward Mechatronics"]  // typed in the hero
+    roles: ["Mechanical Engineer", "Robotics & Automation"]  // typed under the name in the hero, one after the other, then repeats
   },
 
   // Animated counters. value: "projects" = auto-count of entries in `projects`.
