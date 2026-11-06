@@ -116,6 +116,14 @@ details.job summary::after{content:"+";float:right;color:var(--mut);font-family:
 #m-ctrl button{cursor:pointer;background:rgba(10,16,24,.75);border:1px solid #2b3d52;color:#e6edf3;border-radius:999px;padding:6px 13px;font:inherit;font-size:13px}
 #m-ctrl button.on{background:var(--acc);color:var(--accfg);border-color:var(--acc)}
 #m-ctrl span{font-size:12px;color:#93a4b8}
+#m-media{position:absolute;left:0;right:0;top:0;bottom:112px;z-index:2;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:56px 14px 8px;background:linear-gradient(160deg,var(--vw1),var(--vw2))}
+#m-media img,#m-media video{max-width:100%;max-height:calc(100% - 30px);min-height:0;object-fit:contain;border-radius:10px;background:#05090e}
+#m-media iframe{width:min(100%,900px);aspect-ratio:16/9;max-height:calc(100% - 30px);border:0;border-radius:10px;background:#05090e}
+#m-media .cap{font-size:13px;color:#93a4b8;text-align:center;max-width:720px}
+#m-strip{position:absolute;left:12px;right:12px;bottom:56px;z-index:4;display:flex;gap:8px;overflow-x:auto;padding:4px 2px}
+#m-strip .ms{flex:none;width:68px;height:48px;border-radius:10px;border:2px solid #2b3d52;background:#0a1018 center/cover no-repeat;color:#e6edf3;font:600 12px var(--f-mono);cursor:pointer;display:grid;place-items:center;position:relative;padding:0}
+#m-strip .ms.on{border-color:var(--acc);box-shadow:0 0 0 2px rgba(255,255,255,.12)}
+#m-strip .ms.vid::after{content:"\25B6";position:absolute;right:4px;bottom:3px;font-size:10px;background:rgba(0,0,0,.6);border-radius:6px;padding:1px 4px}
 #m-body{padding:28px;min-width:0}
 #m-nav{display:flex;gap:8px;margin-bottom:12px;align-items:center;flex-wrap:wrap}
 #m-nav button{cursor:pointer;background:var(--bg);border:1px solid var(--line);color:var(--txt);border-radius:999px;padding:6px 13px;font:inherit;font-size:13px}
@@ -129,7 +137,9 @@ footer{padding-block:40px;color:var(--mut);font-size:14px;border-top:1px solid v
 #m-body{padding:20px 20px max(28px,env(safe-area-inset-bottom,0px))}
 #m-nav{position:fixed;top:max(10px,env(safe-area-inset-top,0px));left:max(12px,env(safe-area-inset-left,0px));right:max(12px,env(safe-area-inset-right,0px));margin:0;z-index:6;pointer-events:none}
 #m-nav button{pointer-events:auto;background:rgba(10,16,24,.78);color:#e6edf3;border-color:#2b3d52;backdrop-filter:blur(6px);padding:9px 16px}
-#m-ctrl{bottom:max(12px,env(safe-area-inset-bottom,0px))}}
+#m-ctrl{bottom:max(12px,env(safe-area-inset-bottom,0px))}
+#m-strip{bottom:calc(max(12px,env(safe-area-inset-bottom,0px)) + 44px)}
+#m-media{bottom:calc(max(12px,env(safe-area-inset-bottom,0px)) + 100px)}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}details.job.now::before{animation:none}.pill.live::before{animation:none}.typed::after{animation:none}}
 /* Touch feedback: every tab, chip and button glows while pressed, ripples from the touch point, then fades */
 html{-webkit-tap-highlight-color:transparent}
@@ -173,7 +183,7 @@ summary.tap{border-radius:8px;background:color-mix(in srgb,var(--acc) 12%,transp
 
 <div id="modal" role="dialog" aria-modal="true" aria-label="Project detail">
   <div id="m-box">
-    <div id="m-viewwrap"><div id="m-view"></div>
+    <div id="m-viewwrap"><div id="m-view"></div><div id="m-media" hidden></div><div id="m-strip" hidden></div>
       <div id="m-ctrl"><button id="b-spin" class="on">Auto-rotate</button><button id="b-wire">Wireframe</button><span>Drag to rotate, scroll to zoom</span></div></div>
     <div id="m-body"></div>
   </div>
@@ -231,7 +241,7 @@ const filterTab = `<span class="chipgroup" id="fltgrp"><button class="ftab" id="
 const chips = filterTab;
 const cards = D.projects.map((p,i)=>`
   <article class="card" data-i="${i}">
-    <div class="thumb" data-thumb="${i}" data-open="${i}" title="Open 3D view">${p.image?`<img src="${esc(p.image)}" alt="${esc(p.title)}" loading="lazy">`:''}<span class="badge">3D view</span></div>
+    <div class="thumb" data-thumb="${i}" data-open="${i}" title="Open 3D view">${p.image?`<img src="${esc(p.image)}" alt="${esc(p.title)}" loading="lazy">`:''}<span class="badge">3D view${p.media && p.media.length ? ` · ${p.media.length} media` : ''}</span></div>
     <div class="body"><span class="tag">${esc(p.tag)}</span><h3>${esc(p.title)}</h3>
       <div><span class="pill ${p.status==='In progress'?'live':''}">${esc(p.status)}</span>${p.dates?`<span class="pill">${esc(p.dates)}</span>`:""}</div>
       <div style="color:var(--mut);font-size:15px">${esc(p.summary)}</div>
@@ -634,11 +644,35 @@ function openProject(i) {
   if (mv) mv.dispose(); $('#m-view').innerHTML = '';
   mv = makeViewer($('#m-view'), { placeholder: p.placeholder, model: p.model, interactive: true });
   $('#b-spin').classList.add('on'); $('#b-wire').classList.remove('on');
+  setupMedia(p);
   { const wasOpen = modal.classList.contains('open'); modal.classList.add('open'); document.body.style.overflow = 'hidden';
     try { if (wasOpen) history.replaceState({ m: 1 }, '', '#p-' + p.id); else history.pushState({ m: 1 }, '', '#p-' + p.id); } catch (e) {} }
   $('#m-close').focus({ preventScroll: true });
 }
-function doClose() { modal.classList.remove('open'); document.body.style.overflow = ''; if (mv) { mv.dispose(); mv = null; } }
+// Gallery: the 3D view stays first; pictures, videos and YouTube links from p.media show beside it
+const safeSrc = u => { u = String(u || ''); return (/^https:\/\//.test(u) || /^data:image\//.test(u) || !/^[a-z][a-z0-9+.-]*:/i.test(u)) ? u : ''; };
+const ytId = id => (/^[\w-]{6,20}$/.test(String(id || '')) ? id : '');
+function setupMedia(p) {
+  const strip = $('#m-strip'), pane = $('#m-media'), items = (p.media || []).filter(m => m && ((m.type === 'youtube' && ytId(m.id)) || safeSrc(m.src)));
+  const stop = () => { const v = pane.querySelector('video'); if (v) v.pause(); pane.innerHTML = ''; };
+  stop(); pane.hidden = true; strip.hidden = !items.length; strip.innerHTML = '';
+  $('#m-view').style.visibility = ''; $('#m-ctrl').style.display = '';
+  if (!items.length) return;
+  const show = k => {
+    stop(); [...strip.children].forEach((b, j) => b.classList.toggle('on', j === k + 1));
+    if (k < 0) { pane.hidden = true; $('#m-view').style.visibility = ''; $('#m-ctrl').style.display = ''; return; }
+    const m = items[k]; let el;
+    if (m.type === 'youtube') { el = document.createElement('iframe'); el.src = 'https://www.youtube-nocookie.com/embed/' + ytId(m.id); el.allow = 'accelerometer; encrypted-media; picture-in-picture; fullscreen'; el.allowFullscreen = true; el.title = m.caption || p.title; }
+    else if (m.type === 'video') { el = document.createElement('video'); el.src = safeSrc(m.src); el.controls = true; el.playsInline = true; el.preload = 'metadata'; if (safeSrc(m.poster)) el.poster = safeSrc(m.poster); }
+    else { el = document.createElement('img'); el.src = safeSrc(m.src); el.alt = m.caption || p.title; }
+    pane.appendChild(el); if (m.caption) { const c = document.createElement('div'); c.className = 'cap'; c.textContent = m.caption; pane.appendChild(c); }
+    pane.hidden = false; $('#m-view').style.visibility = 'hidden'; $('#m-ctrl').style.display = 'none';
+  };
+  const tile = (label, k, cls, bg) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'ms ' + (cls || ''); b.textContent = bg ? '' : (/vid/.test(cls || '') ? 'Video' : label === '3D' ? '3D' : 'Photo'); if (bg) b.style.backgroundImage = `url("${bg.replace(/"/g, '%22')}")`; b.setAttribute('aria-label', label); b.onclick = () => show(k); strip.appendChild(b); };
+  tile('3D', -1, 'on'); items.forEach((m, k) => tile(m.caption || (m.type === 'image' || !m.type ? 'Picture ' : 'Video ') + (k + 1), k, m.type === 'video' || m.type === 'youtube' ? 'vid' : '', m.type === 'image' || !m.type ? safeSrc(m.src) : safeSrc(m.poster)));
+  strip.firstChild.textContent = '3D';
+}
+function doClose() { const v = $('#m-media video'); if (v) v.pause(); modal.classList.remove('open'); document.body.style.overflow = ''; if (mv) { mv.dispose(); mv = null; } }
 function closeModal() { if (history.state && history.state.m) { history.back(); setTimeout(() => { if (modal.classList.contains('open')) { doClose(); setHash(''); } }, 250); } else { doClose(); setHash(''); } }
 addEventListener('popstate', () => { if (modal.classList.contains('open') && !(history.state && history.state.m)) doClose(); });
 $('#b-spin').onclick = e => { const on = !e.target.classList.contains('on'); e.target.classList.toggle('on', on); mv && mv.setSpin(on); };
