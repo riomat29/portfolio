@@ -652,8 +652,10 @@ function openProject(i) {
 // Gallery: the 3D view stays first; pictures, videos and YouTube links from p.media show beside it
 const safeSrc = u => { u = String(u || ''); return (/^https:\/\//.test(u) || /^data:image\//.test(u) || !/^[a-z][a-z0-9+.-]*:/i.test(u)) ? u : ''; };
 const ytId = id => (/^[\w-]{6,20}$/.test(String(id || '')) ? id : '');
+const SHOW_EMPTY_MEDIA = true;  // true: projects without pictures or videos still show a Media tab with a placeholder message; set false to hide it until media is added
 function setupMedia(p) {
-  const strip = $('#m-strip'), pane = $('#m-media'), items = (p.media || []).filter(m => m && ((m.type === 'youtube' && ytId(m.id)) || safeSrc(m.src)));
+  const strip = $('#m-strip'), pane = $('#m-media'); let items = (p.media || []).filter(m => m && ((m.type === 'youtube' && ytId(m.id)) || safeSrc(m.src)));
+  if (!items.length && SHOW_EMPTY_MEDIA) items = [{ type: 'empty' }];
   const stop = () => { const v = pane.querySelector('video'); if (v) v.pause(); pane.innerHTML = ''; };
   stop(); pane.hidden = true; strip.hidden = !items.length; strip.innerHTML = '';
   $('#m-view').style.visibility = ''; $('#m-ctrl').style.display = '';
@@ -662,14 +664,15 @@ function setupMedia(p) {
     stop(); [...strip.children].forEach((b, j) => b.classList.toggle('on', j === k + 1));
     if (k < 0) { pane.hidden = true; $('#m-view').style.visibility = ''; $('#m-ctrl').style.display = ''; return; }
     const m = items[k]; let el;
-    if (m.type === 'youtube') { el = document.createElement('iframe'); el.src = 'https://www.youtube-nocookie.com/embed/' + ytId(m.id); el.allow = 'accelerometer; encrypted-media; picture-in-picture; fullscreen'; el.allowFullscreen = true; el.title = m.caption || p.title; }
+    if (m.type === 'empty') { el = document.createElement('div'); el.className = 'cap'; el.style.fontSize = '15px'; el.textContent = 'Pictures and videos for this project are coming soon.'; }
+    else if (m.type === 'youtube') { el = document.createElement('iframe'); el.src = 'https://www.youtube-nocookie.com/embed/' + ytId(m.id); el.allow = 'accelerometer; encrypted-media; picture-in-picture; fullscreen'; el.allowFullscreen = true; el.title = m.caption || p.title; }
     else if (m.type === 'video') { el = document.createElement('video'); el.src = safeSrc(m.src); el.controls = true; el.playsInline = true; el.preload = 'metadata'; if (safeSrc(m.poster)) el.poster = safeSrc(m.poster); }
     else { el = document.createElement('img'); el.src = safeSrc(m.src); el.alt = m.caption || p.title; }
     pane.appendChild(el); if (m.caption) { const c = document.createElement('div'); c.className = 'cap'; c.textContent = m.caption; pane.appendChild(c); }
     pane.hidden = false; $('#m-view').style.visibility = 'hidden'; $('#m-ctrl').style.display = 'none';
   };
-  const tile = (label, k, cls, bg) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'ms ' + (cls || ''); b.textContent = bg ? '' : (/vid/.test(cls || '') ? 'Video' : label === '3D' ? '3D' : 'Photo'); if (bg) b.style.backgroundImage = `url("${bg.replace(/"/g, '%22')}")`; b.setAttribute('aria-label', label); b.onclick = () => show(k); strip.appendChild(b); };
-  tile('3D', -1, 'on'); items.forEach((m, k) => tile(m.caption || (m.type === 'image' || !m.type ? 'Picture ' : 'Video ') + (k + 1), k, m.type === 'video' || m.type === 'youtube' ? 'vid' : '', m.type === 'image' || !m.type ? safeSrc(m.src) : safeSrc(m.poster)));
+  const tile = (label, k, cls, bg) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'ms ' + (cls || ''); b.textContent = bg ? '' : (/vid/.test(cls || '') ? 'Video' : label === '3D' ? '3D' : label === 'Media' ? 'Media' : 'Photo'); if (bg) b.style.backgroundImage = `url("${bg.replace(/"/g, '%22')}")`; b.setAttribute('aria-label', label); b.onclick = () => show(k); strip.appendChild(b); };
+  tile('3D', -1, 'on'); items.forEach((m, k) => tile(m.type === 'empty' ? 'Media' : m.caption || (m.type === 'image' || !m.type ? 'Picture ' : 'Video ') + (k + 1), k, m.type === 'video' || m.type === 'youtube' ? 'vid' : '', m.type === 'image' || !m.type ? safeSrc(m.src) : safeSrc(m.poster)));
   strip.firstChild.textContent = '3D';
 }
 function doClose() { const v = $('#m-media video'); if (v) v.pause(); modal.classList.remove('open'); document.body.style.overflow = ''; if (mv) { mv.dispose(); mv = null; } }
