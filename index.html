@@ -93,6 +93,7 @@ button.open:hover{border-color:var(--acc);background:color-mix(in srgb,var(--acc
 .tl{border-left:2px solid var(--line);margin-left:6px;padding-left:24px}
 details.job{margin-bottom:14px;position:relative;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 18px}
 details.job::before{content:"";position:absolute;left:-33px;top:22px;width:10px;height:10px;border-radius:50%;background:var(--acc)}
+details.job.now::before{background:#22c55e;box-shadow:0 0 0 4px rgba(34,197,94,.28)}
 details.job summary{cursor:pointer;list-style:none}details.job summary::-webkit-details-marker{display:none}
 details.job summary::after{content:"+";float:right;color:var(--mut);font-family:var(--f-mono)}details.job[open] summary::after{content:"\2212"}
 .job h3{margin:0;font-family:var(--f-display);font-weight:600;font-size:1.05rem}.job .meta{color:var(--mut);font-size:14px}
@@ -227,7 +228,7 @@ const cards = D.projects.map((p,i)=>`
       <div style="color:var(--mut);font-size:15px">${esc(p.summary)}</div>
       <button class="open" data-open="${i}">Details &amp; 3D view</button></div>
   </article>`).join('');
-const exp = D.experience.map((j,i)=>`<details class="job" ${i===0?'open':''}><summary><h3>${esc(j.role)} · ${esc(j.org)}</h3><div class="meta">${esc([j.place,j.dates].filter(Boolean).join(' · '))}</div></summary>${ul(j.bullets)||'<div class="meta" style="margin-top:8px">Details to add.</div>'}</details>`).join('');
+const exp = D.experience.map((j,i)=>`<details class="job${/Present/i.test(j.dates)?' now':''}" ${i===0?'open':''}><summary><h3>${esc(j.role)} · ${esc(j.org)}</h3><div class="meta">${esc([j.place,j.dates].filter(Boolean).join(' · '))}</div></summary>${ul(j.bullets)||'<div class="meta" style="margin-top:8px">Details to add.</div>'}</details>`).join('');
 const skills = D.skills.map(s=>`<div><h4>${esc(s.group)}</h4>${s.items.map(x=>`<button class="sk" data-skill="${esc(x.split(' (')[0])}">${esc(x)}</button>`).join('')}</div>`).join('');
 const edu = D.education.map(e=>`<details class="job"><summary><h3>${esc(e.title)}</h3><div class="meta">${esc(e.school)} · ${esc(e.dates)}</div></summary><div style="color:var(--mut);margin-top:8px">${esc(e.note)}</div></details>`).join('');
 const extra = (D.extra||[]).map((e,i)=>sec('extra'+i,e.title,(e.items||[]).map(x=>`<details class="job" open><summary><h3>${esc(x.heading)}</h3></summary><div style="color:var(--mut);margin-top:8px">${esc(x.text)}</div></details>`).join(''))).join('');
