@@ -517,6 +517,8 @@ const fitInto = (holder, o, size = 4.5) => { const b = new THREE.Box3().setFromO
 /* ---------- Fixed background stage: reacts to scroll + mouse ---------- */
 (() => {
   const el = $('#stage'), renderer = newRenderer(); if (!renderer) return; el.appendChild(renderer.domElement);
+  let lostEnv = false; renderer.domElement.addEventListener('webglcontextlost', e => { e.preventDefault(); lostEnv = true; });
+  renderer.domElement.addEventListener('webglcontextrestored', () => { if (lostEnv) { lostEnv = false; try { addEnv(renderer, scene); } catch (err) {} } });
   const scene = new THREE.Scene(), cam = new THREE.PerspectiveCamera(38, 1, .1, 200);
   const bgNow = () => getComputedStyle(root).getPropertyValue('--bg').trim() || '#080d14';
   scene.fog = new THREE.Fog(bgNow(), 14, 34); addEnv(renderer, scene);
@@ -569,7 +571,7 @@ function makeViewer(container, { model, placeholder, interactive = false, spin =
   return {
     setWire(on) { holder.traverse(o => { if (o.isMesh) [].concat(o.material).forEach(m => m.wireframe = on); }); },
     setSpin(on) { spinOn = on; },
-    dispose() { alive = false; cancelAnimationFrame(raf); ro.disconnect(); vio.disconnect(); renderer.dispose(); renderer.domElement.remove(); } };
+    dispose() { alive = false; cancelAnimationFrame(raf); ro.disconnect(); vio.disconnect(); renderer.dispose(); try { renderer.forceContextLoss(); } catch (e) {} renderer.domElement.remove(); } };
 }
 // One live 3D context per visible thumbnail only: browsers cap WebGL contexts (about 16), so release a card's viewer once it scrolls well off screen and rebuild it when it returns.
 const thumbViewers = new Map();
