@@ -26,7 +26,6 @@
 /* Layout: fixed 3D scene behind a single scrolling column; sections are translucent panels over it. Dark-first, light via tokens. */
 :root{--live:#4ade80;--bg:#080d14;--panel:#111a25;--line:#223041;--txt:#e6edf3;--mut:#93a4b8;--acc:#38bdf8;--acc2:#fb923c;--accfg:#04202e;--glow:56,189,248;--vw1:#0f2233;--vw2:#0a1018;--r:16px;
 --f-display:"Chakra Petch","Segoe UI",system-ui,sans-serif;--f-body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;--f-mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;color-scheme:dark}
-@media (prefers-color-scheme:light){:root:not([data-theme="dark"]){--bg:#d1e0d5;--panel:#eef5f0;--line:#a9c2b0;--txt:#14231a;--mut:#3d5144;--live:#146c33;--acc:#146c33;--acc2:#3b7316;--accfg:#ffffff;--glow:21,128,61;color-scheme:light}}
 :root[data-theme="red"]{--bg:#14161a;--panel:#1d2025;--line:#33373e;--txt:#eceef1;--mut:#a3a9b3;--acc:#ef4444;--acc2:#b4bac4;--accfg:#0f1114;--glow:239,68,68;--vw1:#2a2d33;--vw2:#16181c;color-scheme:dark}
 :root[data-theme="light"]{--bg:#d1e0d5;--panel:#eef5f0;--line:#a9c2b0;--txt:#14231a;--mut:#3d5144;--live:#146c33;--acc:#146c33;--acc2:#3b7316;--accfg:#ffffff;--glow:21,128,61;color-scheme:light}
 *{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:76px}
@@ -193,7 +192,7 @@ const setHash = h => { try { history.replaceState(null, '', h || (location.pathn
 /* ---------- Theme: follows the viewer unless the toggle is used ---------- */
 const root = document.documentElement;
 const saved = store.get('theme'); if (saved === 'light' || saved === 'dark' || saved === 'red') root.dataset.theme = saved;
-const effTheme = () => root.dataset.theme || (matchMedia('(prefers-color-scheme:light)').matches ? 'light' : 'dark');
+const effTheme = () => root.dataset.theme || 'dark';  // dark navy and blue is always the first theme; a saved choice overrides it
 
 /* ---------- Render ---------- */
 const sections = [['about','About'],['projects','Projects'],['experience','Experience'],['skills','Skills'],['education','Education'],
@@ -203,7 +202,7 @@ const THEMES = [['dark', 'Dark navy and blue', '◐'], ['light', 'White and ligh
 const paintThemeBtn = () => { const i = Math.max(0, THEMES.findIndex(t => t[0] === effTheme())), nx = THEMES[(i + 1) % THEMES.length], b = $('#theme');
   b.textContent = THEMES[i][2]; b.title = 'Theme: ' + THEMES[i][1] + '. Click for ' + nx[1] + '.'; b.setAttribute('aria-label', b.title); b.style.color = THEMES[i][0] === 'red' ? 'var(--acc)' : ''; };
 $('#theme').onclick = () => { const i = Math.max(0, THEMES.findIndex(t => t[0] === effTheme())), t = THEMES[(i + 1) % THEMES.length][0]; root.dataset.theme = t; store.set('theme', t); paintThemeBtn(); };
-paintThemeBtn(); matchMedia('(prefers-color-scheme:light)').addEventListener('change', paintThemeBtn);
+paintThemeBtn();
 
 $('#hero-text').innerHTML = `
   <div class="kick">${esc(P.location)}</div>
@@ -578,7 +577,6 @@ const fitInto = (holder, o, size = 4.5) => { const b = new THREE.Box3().setFromO
     el.style.opacity = String(Math.max(.55, 1 - sp * 5)); })();
   const refogg = () => { scene.fog.color.set(bgNow()); setGrid(); };
   new MutationObserver(refogg).observe(root, { attributes: true, attributeFilter: ['data-theme'] });
-  matchMedia('(prefers-color-scheme:light)').addEventListener('change', refogg);
 })();
 
 /* ---------- Reusable viewer (card thumbs + modal) ---------- */
