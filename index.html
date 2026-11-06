@@ -585,8 +585,7 @@ function openProject(i) {
     <div><span class="pill ${p.status==='In progress'?'live':''}">${esc(p.status)}</span>${p.dates?`<span class="pill">${esc(p.dates)}</span>`:""}</div>
     <p style="color:var(--mut)">${esc(p.summary)}</p>${ul(p.bullets)}<p>${pills(p.tools)}</p>
     ${csec('Problem', p.problem)}${csec('Approach', p.approach)}${csec('Results', p.results)}${csec('What I learned', p.learned)}
-    ${(p.links||[]).map(l=>`<a class="btn" href="${esc(l.url)}" target="_blank" rel="noopener">${esc(l.label)}</a>`).join('')}
-    ${p.model ? '' : '<p class="note">This 3D shape is a stand-in. The CAD model is added in data.js.</p>'}`;
+    ${(p.links||[]).map(l=>`<a class="btn" href="${esc(l.url)}" target="_blank" rel="noopener">${esc(l.label)}</a>`).join('')}`;
   $('#b-prev').onclick = () => openProject(cur - 1); $('#b-next').onclick = () => openProject(cur + 1); $('#m-close').onclick = closeModal;
   if (mv) mv.dispose(); $('#m-view').innerHTML = '';
   mv = makeViewer($('#m-view'), { placeholder: p.placeholder, model: p.model, interactive: true });
