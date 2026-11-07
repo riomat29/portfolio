@@ -167,14 +167,15 @@ window.PORTFOLIO = {
         "Program and test PLC ladder logic in Studio 5000 / RSLogix 5000 for timer-based sequential control.",
         "Support commissioning of a new ABB robot cell, including design review of end effectors, fixtures and jigs against production and cycle-time requirements.",
         "Reconcile weld map IDs against CAD part drawings, finding missing welds and correcting the CAD files for production release.",
-        "Track cell downtime and runtime in FactoryTalk monitoring."
+        "Track cell downtime and runtime in FactoryTalk monitoring.",
+        "The 3D view is a generic, unbranded model of an indexing robotic welding cell (robot, two-station positioner, weld screen, guarding and operator loading), animated through one weld cycle. It illustrates this type of cell and is not a model of the actual equipment."
       ],
       tools: ["Allen-Bradley Studio 5000", "ABB RobotStudio", "FactoryTalk", "CAD"],
       problem: "A new ABB robot cell needed PLC control logic, a design review of its tooling, and clean weld data before it could be released to production.",
       approach: ["Wrote and tested timer-based sequential ladder logic in Studio 5000 / RSLogix 5000.", "Supported commissioning, including design review of end effectors, fixtures and jigs against production and cycle-time requirements.", "Reconciled weld map IDs against the CAD part drawings.", "Tracked cell downtime and runtime in FactoryTalk monitoring."],
       results: ["Found missing welds and corrected the CAD files for production release.", "Cell downtime and runtime visible through FactoryTalk monitoring.", "Work is ongoing; commissioning results will be added here."],
       learned: ["A robot cell only commissions cleanly when control logic, tooling design and released drawings all agree.", "Weld maps and CAD drawings drift apart unless someone checks one against the other."],
-      model: "", placeholder: "robot", image: "", links: []
+      model: "", placeholder: "weldcell", image: "", links: []
     },
     {
       id: "traffic-light-plc-hmi",
@@ -212,7 +213,7 @@ window.PORTFOLIO = {
       approach: ["Modelled the full assembly in SolidWorks: linkages, joint geometry and end effector.", "Designed a modular gripper and integrated sensors into the control system.", "Implemented PLC-based sequential motion control.", "Used finite element analysis to check the design, then validated by physical testing."],
       results: ["A working 4-DOF arm validated by physical testing, with outcomes documented in a formal report."],
       learned: ["Joint limits and gripper size have to be decided together with the control sequence, not after it."],
-      model: "", placeholder: "arm", image: "", links: []
+      model: "", placeholder: "pickarm", image: "", links: []
     },
     {
       id: "drip-irrigation",

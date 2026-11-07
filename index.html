@@ -365,7 +365,7 @@ const ext = (shape, depth, bevel = .04) => {
   const gm = new THREE.ExtrudeGeometry(shape, { depth, bevelEnabled: true, bevelThickness: bevel, bevelSize: bevel, bevelSegments: 2, curveSegments: 20 });
   gm.translate(0, 0, -depth / 2); return gm;
 };
-function buildPlaceholder(type) {
+function buildPlaceholder(type, opts) {
   const g = new THREE.Group();
   if (type === 'arm') {
     g.add(at(cyl(1,.4,DK),0,.2,0));
@@ -450,9 +450,10 @@ function buildPlaceholder(type) {
     nozzle.add(at(M(new THREE.CylinderGeometry(.075, .105, .3, 24), steel), 0, .1, 0), at(M(new THREE.CylinderGeometry(.03, .03, .14, 12), brass), 0, .3, 0));
     const spark = at(M(new THREE.SphereGeometry(.055, 16, 12), arc), 0, .4, 0); nozzle.add(spark);
     const ruler = at(M(new THREE.BoxGeometry(9.2, .01, .01), dark), 0, .05, 0); ruler.visible = false; g.add(ruler);   // invisible ruler keeps the base swing centred when fitted
+    g.userData.rig = { turret, shoulder, elbow, roll, bend, flange, spark, arc, led };
     g.userData.fit = 8.2;
     g.userData.tick = t => {
-      turret.rotation.y = t * .45;
+      turret.rotation.y = opts && opts.swing != null ? Math.sin(t * .5) * opts.swing : t * .45;
       shoulder.rotation.z = -.28 + Math.sin(t * .7) * .2;
       elbow.rotation.z = -.2 + Math.sin(t * .9 + 1) * .3;
       roll.rotation.x = Math.sin(t * .8) * .9;
@@ -460,6 +461,176 @@ function buildPlaceholder(type) {
       flange.rotation.x = Math.sin(t * .9) * 1.3;
       const k = .75 + .25 * Math.sin(t * 41) * Math.sin(t * 13); arc.emissiveIntensity = 2.5 * k; spark.scale.setScalar(.8 + .5 * k);
       led.emissiveIntensity = .4 + (Math.sin(t * 4) > 0 ? .9 : 0);
+    };
+  } else if (type === 'weldcell') {
+    // Indexing robotic arc-welding cell (generic, no brands): turntable with two stations, robot, guarding, safety devices and an operator.
+    // Cycle (20 s): robot welds side A, jig tilts 90 deg, robot welds side B, jig returns, table indexes 180 deg, finished part reaches the operator, who swaps it for a new part.
+    const M = (geo, m) => new THREE.Mesh(geo, m);
+    const mt = (c, m = .3, r = .55) => new THREE.MeshStandardMaterial({ color: c, metalness: m, roughness: r });
+    const YEL = mt(0xe3a21a, .25, .5), WHT = mt(0xdde2e6, .2, .45), WALL = mt(0x5b646f, .35, .6), BLU = mt(0x1d4fd0, .35, .45), STL = mt(0x9ca5af, .85, .35), BLK = mt(0x14181d, .4, .6), RED = mt(0xc0262d, .25, .5), FLR = mt(0x18212d, .2, .85), GRYC = mt(0x8a929b, .3, .55), BEAD = mt(0xe6ebf0, .9, .25);
+    const B = (w, h, d, m, x = 0, y = 0, z = 0) => at(M(new THREE.BoxGeometry(w, h, d), m), x, y, z);
+    const C = (r, h, m, x = 0, y = 0, z = 0, ax = 'y') => { const c = M(new THREE.CylinderGeometry(r, r, h, 28), m); if (ax === 'x') c.rotation.z = Math.PI / 2; if (ax === 'z') c.rotation.x = Math.PI / 2; return at(c, x, y, z); };
+    const clamp01 = v => Math.min(1, Math.max(0, v)), ease = v => { v = clamp01(v); return v * v * (3 - 2 * v); };
+    const ZR = -1.9, ZO = 1.9, ZROBOT = -5.2, BACK = -6.9;
+    // floor, boundary line, back wall with guard skirt
+    g.add(B(19, .12, 14.4, FLR, -.9, .06, -.3));
+    [[12.6, .05, .12, 0, 4.1], [12.6, .05, .12, 0, BACK + .5], [.12, .05, 11.2, -6.3, -1.4], [.12, .05, 11.2, 6.3, -1.4]].forEach(([w, h, d, x, z]) => g.add(B(w, h, d, YEL, x, .14, z)));
+    g.add(B(12.8, 3.7, .25, WALL, 0, 1.95, BACK));
+    for (let i = -2; i <= 2; i++) g.add(B(.06, 3.5, .06, BLK, i * 2.4 + .6, 1.95, BACK + .15));
+    g.add(B(12.8, 1.05, .22, YEL, 0, .66, BACK + .25));
+    // turntable
+    const tt = new THREE.Group(); g.add(tt);
+    tt.add(C(3.45, .12, YEL, 0, .2, 0), C(3.3, .3, mt(0x222c38, .4, .6), 0, .35, 0), C(.7, .5, STL, 0, .6, 0));
+    // solid weld screen between the two stations: turns with the table so the operator side never sees the arc
+    const SCR = mt(0x2b3544, .3, .7);
+    tt.add(B(6.2, 3.0, .18, SCR, 0, 2.0, 0), B(6.3, .1, .26, YEL, 0, 3.55, 0), B(.12, 3.0, .26, YEL, -3.1, 2.0, 0), B(.12, 3.0, .26, YEL, 3.1, 2.0, 0), B(6.2, .28, .26, YEL, 0, .64, 0));
+    for (let i = -2; i <= 2; i++) tt.add(B(.05, 2.7, .2, BLK, i * 1.1, 2.0, 0));
+    const makeStation = (z, sgn) => {
+      const st = new THREE.Group(); st.position.z = z; tt.add(st);
+      st.add(B(1.2, .3, 1.3, BLK, -2.5, .62, 0), B(1.0, 1.9, 1.1, WHT, -2.5, 1.55, 0), B(.4, .4, .4, WHT, -2.5, 2.7, 0));
+      st.add(B(1.0, .3, 1.0, BLK, 2.5, .62, 0), B(.85, 1.9, .9, WHT, 2.5, 1.55, 0), C(.3, .6, WHT, 2.0, 2.0, 0, 'x'));
+      const jig = new THREE.Group(); jig.position.y = 2.0; st.add(jig);
+      jig.add(C(.5, .2, BLK, -1.95, 0, 0, 'x'), C(.2, .5, STL, 1.7, 0, 0, 'x'), B(3.6, .26, .5, BLU, 0, 0, 0));
+      [-1.05, 1.05].forEach(x => { jig.add(B(.7, .7, .62, BLU, x, .45, 0), B(.5, .2, .35, YEL, x, .9, .22 * sgn), C(.09, .6, STL, x, .75, .45 * sgn, 'z')); });
+      jig.add(B(.9, .6, .5, YEL, -.2, -.5, .45 * sgn), B(.6, .32, .05, BLK, -.2, -.5, .72 * sgn));
+      const part = new THREE.Group(); part.position.y = .95; jig.add(part);
+      part.add(B(3.3, .34, .55, STL, 0, 0, 0));
+      const N = 24, beadA = [], beadB = [];
+      for (let i = 0; i < N; i++) {
+        const xw = -1.4 + 2.8 * (i + .5) / N;
+        const a = B(.13, .07, .1, BEAD, sgn * xw, .2, 0), b = B(.13, .1, .07, BEAD, sgn * xw, 0, .28 * sgn);
+        part.add(a, b); beadA.push(a); beadB.push(b);
+      }
+      const mkA = new THREE.Object3D(), mkB = new THREE.Object3D(); part.add(mkA, mkB);
+      return { st, jig, part, beadA, beadB, mkA, mkB, sgn, N };
+    };
+    const S = [makeStation(ZR, 1), makeStation(ZO, -1)];
+    // operator (hi-vis vest, hard hat) with carried parts
+    const op = new THREE.Group(); g.add(op);
+    const legs = [-.14, .14].map(x => { const l = new THREE.Group(); l.position.set(x, .9, 0); l.add(B(.2, .9, .22, mt(0x27303b, .1, .8), 0, -.45, 0)); op.add(l); return l; });
+    op.add(B(.55, .8, .32, mt(0xf97316, .05, .7), 0, 1.3, 0), B(.57, .1, .34, mt(0xe5e7eb, .1, .6), 0, 1.25, 0));
+    op.add(at(M(new THREE.SphereGeometry(.18, 16, 12), mt(0xc9a98a, 0, .8)), 0, 1.92, 0), at(M(new THREE.SphereGeometry(.2, 16, 8, 0, Math.PI * 2, 0, Math.PI / 2), mt(0xf5d90a, .1, .5)), 0, 1.97, 0));
+    op.add(B(.12, .55, .12, mt(0xf97316, .05, .7), -.38, 1.2, -.2), B(.12, .55, .12, mt(0xf97316, .05, .7), .38, 1.2, -.2));
+    const carryF = B(1.7, .17, .27, STL, 0, 1.08, -.55), carryB = B(1.7, .17, .27, STL, 0, 1.08, -.55); op.add(carryF, carryB);
+    // fencing (mesh panels, yellow posts) with an entry gap at the front
+    const meshTex = () => { const c = document.createElement('canvas'); c.width = c.height = 64; const x = c.getContext('2d'); x.strokeStyle = 'rgba(190,200,210,.85)'; x.lineWidth = 3; x.strokeRect(1, 1, 62, 62); const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; return t; };
+    const panel = (w, x, z, ry) => { const tx = meshTex(); tx.repeat.set(w / .22, 2.6 / .22); const p = M(new THREE.PlaneGeometry(w, 2.6), new THREE.MeshBasicMaterial({ map: tx, transparent: true, side: THREE.DoubleSide, depthWrite: false })); p.position.set(x, 1.4, z); p.rotation.y = ry; g.add(p); };
+    const post = (x, z) => { g.add(B(.16, 2.7, .16, YEL, x, 1.4, z), B(.4, .06, .4, YEL, x, .13, z)); };
+    const FZ = 4.1;
+    panel(4.4, -4.0, FZ, 0); panel(4.4, 4.0, FZ, 0); panel(10.8, -6.3, -1.4, Math.PI / 2); panel(10.8, 6.3, -1.4, Math.PI / 2);
+    [-6.3, -1.8, 1.8, 6.3].forEach(x => post(x, FZ)); [-6.3, 6.3].forEach(x => [BACK + .5, -3.4, .3, 2.2].forEach(z => post(x, z)));
+    g.add(B(4.4, .08, .08, YEL, -4.0, 2.7, FZ), B(4.4, .08, .08, YEL, 4.0, 2.7, FZ));
+    // light scanner at the entry, tower light on the front-right post
+    g.add(B(.22, 2.0, .22, BLK, -2.5, 1.06, FZ + .3), B(.55, .42, .55, YEL, -2.5, 2.25, FZ + .3), B(.3, .16, .06, BLK, -2.5, 2.25, FZ + .6));
+    g.add(C(.05, 1.0, BLK, 6.3, 3.2, FZ));
+    const lampG = mt(0x22c55e, 0, .4), lampA = mt(0xf59e0b, 0, .4), lampR = mt(0xef4444, 0, .4);
+    [lampG, lampA, lampR].forEach(m => { m.emissive = m.color.clone(); m.emissiveIntensity = .3; });
+    g.add(C(.15, .22, lampR, 6.3, 3.78, FZ), C(.15, .22, lampA, 6.3, 3.55, FZ), C(.15, .22, lampG, 6.3, 3.32, FZ));
+    // welding power source and control cabinet outside the fence
+    g.add(B(1.2, .3, 1.0, BLK, -8.4, .27, -3.5), B(1.15, 1.25, .9, RED, -8.4, 1.05, -3.5), B(.6, .3, .04, BLK, -8.4, 1.45, -3.02), B(.9, .5, .04, BLK, -8.4, .75, -3.02));
+    g.add(B(1.3, 2.3, .85, GRYC, -8.4, 1.3, -5.0), B(.5, .6, .04, BLK, -8.4, 1.6, -4.56));
+    // robot behind the weld station, solved with simple inverse kinematics so the torch follows the seam
+    const robot = buildPlaceholder('robot', { swing: .75 }); const RK = .78; robot.scale.setScalar(RK); robot.position.set(0, 0, ZROBOT); robot.rotation.y = -Math.PI / 2; g.add(robot);
+    const rig = robot.userData.rig, L1 = 2.1, L2 = 2.15, PHI = -.14, cP = Math.cos(PHI), sP = Math.sin(PHI), WX = 2.25 * cP + .957 * sP, WY = 2.25 * sP - .957 * cP;
+    const v = new THREE.Vector3(), tw = new THREE.Vector3(), home = new THREE.Vector3(0, 4.4, ZR - 1.0), tgt = new THREE.Vector3(), pa = new THREE.Vector3(), pb = new THREE.Vector3();
+    const aim = w => {
+      robot.updateWorldMatrix(true, false); const l = robot.worldToLocal(v.copy(w));
+      const th = Math.atan2(-l.z, l.x), r = Math.hypot(l.x, l.z), Y = l.y - 1.0;
+      const wx = r - WX, wy = Y - WY - 1.6; let D = Math.hypot(wx, wy); D = Math.min(L1 + L2 - .03, Math.max(Math.abs(L1 - L2) + .1, D));
+      const dl = Math.acos(Math.min(1, Math.max(-1, (L1 * L1 + D * D - L2 * L2) / (2 * L1 * D)))), a = Math.atan2(wy, wx) + dl;
+      const ex = L1 * Math.cos(a), ey = L1 * Math.sin(a), c = Math.atan2(wy - ey, wx - ex);
+      rig.turret.rotation.y = th; rig.shoulder.rotation.z = a - Math.PI / 2; rig.elbow.rotation.z = c - (a - Math.PI / 2); rig.bend.rotation.z = PHI - c; rig.roll.rotation.x = 0; rig.flange.rotation.x = 0;
+    };
+    const keys = [[0, 1.0, 5.4], [.8, .3, 3.4], [2.2, .3, 3.4], [3.6, 1.2, 5.6], [5.2, 1.2, 5.6], [6.8, .3, 3.4], [9.6, .3, 3.4], [11.2, 1.0, 5.4], [20, 1.0, 5.4]];
+    const T = 20;
+    g.userData.fit = 14; g.userData.cam = [9.4, 6.4, 4.6];
+    g.userData.tick = t => {
+      const k = Math.floor(t / T), u = t - k * T, rsI = k % 2, R = S[rsI], O = S[1 - rsI];
+      tt.rotation.y = Math.PI * (k + ease((u - 15) / 3));
+      // weld timeline on the robot-side station
+      const tilt = ease((u - 6) / 1.5) - ease((u - 13.5) / 1.5), pA = clamp01((u - .8) / 4.2), pB = clamp01((u - 8.3) / 4.2);
+      R.jig.rotation.x = R.sgn * (-Math.PI / 2) * tilt; O.jig.rotation.x = 0;
+      R.part.visible = true; R.part.position.set(0, .95, 0);
+      const show = (st, fa, fb) => { st.beadA.forEach((m, i) => m.visible = i < fa * st.N); st.beadB.forEach((m, i) => m.visible = (st.N - 1 - i) < fb * st.N); };
+      show(R, pA, pB);
+      // operator-side station: finished part is taken, a new part is fitted
+      const pick = ease((u - .8) / 1.4), fit = ease((u - 8) / 1.5), dir = -O.sgn;
+      let carry = 0;
+      if (u < 2.2) { O.part.visible = true; O.part.position.set(0, .95 + .4 * pick, dir * 1.3 * pick); show(O, 1, 1); }
+      else if (u < 8) { O.part.visible = false; carry = u < 3.6 ? 1 : (u >= 5.2 ? 2 : 0); }
+      else { O.part.visible = true; O.part.position.set(0, .95 + .4 * (1 - fit), dir * 1.3 * (1 - fit)); show(O, 0, 0); }
+      carryF.visible = carry === 1; carryB.visible = carry === 2;
+      let i = 0; while (i < keys.length - 2 && u >= keys[i + 1][0]) i++;
+      const k0 = keys[i], k1 = keys[i + 1], f = ease((u - k0[0]) / (k1[0] - k0[0]));
+      const ox = k0[1] + (k1[1] - k0[1]) * f, oz = k0[2] + (k1[2] - k0[2]) * f, mv = Math.hypot(k1[1] - k0[1], k1[2] - k0[2]) > .01 && f > 0 && f < 1;
+      op.position.set(ox, 0, oz); op.rotation.y = 0;
+      legs[0].rotation.x = mv ? Math.sin(t * 7) * .5 : 0; legs[1].rotation.x = mv ? -Math.sin(t * 7) * .5 : 0;
+      g.updateMatrixWorld(true);
+      // torch path: home -> seam A -> home -> seam B -> home
+      R.mkA.position.set(R.sgn * (-1.4 + 2.8 * pA), .2, 0); R.mkB.position.set(R.sgn * (1.4 - 2.8 * pB), 0, .28 * R.sgn);
+      R.mkA.getWorldPosition(pa); g.worldToLocal(pa); R.mkB.getWorldPosition(pb); g.worldToLocal(pb);
+      let weld = false;
+      if (u < .8) tgt.lerpVectors(home, pa.set(pa.x, pa.y + .25, pa.z), ease(u / .8));
+      else if (u < 5.0) { tgt.copy(pa); tgt.y += .22; weld = true; }
+      else if (u < 6.0) tgt.lerpVectors(pa.set(pa.x, pa.y + .22, pa.z), home, ease(u - 5));
+      else if (u < 7.5) tgt.copy(home);
+      else if (u < 8.3) tgt.lerpVectors(home, pb.set(pb.x, pb.y + .25, pb.z), ease((u - 7.5) / .8));
+      else if (u < 12.5) { tgt.copy(pb); tgt.y += .22; weld = true; }
+      else if (u < 13.5) tgt.lerpVectors(pb.set(pb.x, pb.y + .22, pb.z), home, ease(u - 12.5));
+      else tgt.copy(home);
+      tw.copy(tgt); g.localToWorld(tw); aim(tw);
+      const kk = weld ? .75 + .25 * Math.sin(t * 41) * Math.sin(t * 13) : 0;
+      rig.arc.emissiveIntensity = weld ? 2.5 * kk + .4 : .12; rig.spark.scale.setScalar(weld ? .8 + .5 * kk : .25);
+      rig.led.emissiveIntensity = weld ? .4 + (Math.sin(t * 4) > 0 ? .9 : 0) : 1;
+      const idx = u >= 15 && u < 18;
+      lampG.emissiveIntensity = idx ? .1 : .6 + .3 * Math.sin(t * 2); lampA.emissiveIntensity = idx ? (Math.sin(t * 6) > 0 ? 1.4 : .15) : .12;
+    };
+  } else if (type === 'pickarm') {
+    // 4-axis pick & place: the industrial arm model limited to base swing, shoulder, elbow and wrist pitch, with a two-finger gripper moving a block between two pads.
+    const M = (geo, m) => new THREE.Mesh(geo, m);
+    const mt = (c, m = .3, r = .55) => new THREE.MeshStandardMaterial({ color: c, metalness: m, roughness: r });
+    const B = (w, h, d, m, x = 0, y = 0, z = 0) => at(M(new THREE.BoxGeometry(w, h, d), m), x, y, z);
+    const clamp01 = v => Math.min(1, Math.max(0, v)), ease = v => { v = clamp01(v); return v * v * (3 - 2 * v); };
+    const YEL = mt(0xe3a21a, .25, .5), PAD = mt(0x222c38, .4, .6), BLK = mt(0x14181d, .4, .6), STL = mt(0x9ca5af, .85, .35), CUBE = mt(0x38bdf8, .2, .4);
+    const robot = buildPlaceholder('robot', { swing: 0 }); g.add(robot);
+    const rig = robot.userData.rig, fl = rig.flange;
+    fl.children.slice(10).forEach(c => c.visible = false);   // remove the welding torch
+    fl.add(B(.34, .5, .7, BLK, .3, 0, 0));
+    const fL = B(.55, .12, .09, STL, .75, 0, .4), fR = B(.55, .12, .09, STL, .75, 0, -.4); fl.add(fL, fR);
+    const R0 = 3.1, AP = .9, AQ = -.9, PY = .12 + .2;
+    const padPos = a => new THREE.Vector3(R0 * Math.cos(a), 0, -R0 * Math.sin(a));
+    [AP, AQ].forEach(a => { const p = padPos(a); g.add(B(1.3, .12, 1.3, YEL, p.x, .06, p.z), B(1.1, .14, 1.1, PAD, p.x, .07, p.z)); });
+    const cube = B(.4, .4, .4, CUBE); g.add(cube);
+    const L1 = 2.1, L2 = 2.15, PHI = -Math.PI / 2, WX = 1.81 * Math.cos(PHI), WY = 1.81 * Math.sin(PHI), v = new THREE.Vector3(), tw = new THREE.Vector3(), tgt = new THREE.Vector3();
+    const aim = w => {
+      robot.updateWorldMatrix(true, false); const l = robot.worldToLocal(v.copy(w));
+      const th = Math.atan2(-l.z, l.x), r = Math.hypot(l.x, l.z), Y = l.y - 1.0;
+      const wx = r - WX, wy = Y - WY - 1.6; let D = Math.hypot(wx, wy); D = Math.min(L1 + L2 - .03, Math.max(Math.abs(L1 - L2) + .1, D));
+      const dl = Math.acos(Math.min(1, Math.max(-1, (L1 * L1 + D * D - L2 * L2) / (2 * L1 * D)))), a = Math.atan2(wy, wx) + dl;
+      const ex = L1 * Math.cos(a), ey = L1 * Math.sin(a), c = Math.atan2(wy - ey, wx - ex);
+      rig.turret.rotation.y = th; rig.shoulder.rotation.z = a - Math.PI / 2; rig.elbow.rotation.z = c - (a - Math.PI / 2); rig.bend.rotation.z = PHI - c; rig.roll.rotation.x = 0; rig.flange.rotation.x = 0;
+    };
+    const lerpA = (a0, a1, f) => a0 + (a1 - a0) * f, T = 9.5, HY = 1.9, GY = PY + .02;
+    const at3 = (a, y) => { const p = padPos(a); return p.set(p.x, y, p.z); };
+    g.userData.fit = 8.4; g.userData.cam = [6.2, 5.6, 10.2];
+    g.userData.tick = t => {
+      const k = Math.floor(t / T), u = t - k * T, aS = k % 2 ? AQ : AP, aD = k % 2 ? AP : AQ;
+      let grip = 0;   // 0 open, 1 closed
+      if (u < 1) { tgt.lerpVectors(new THREE.Vector3(2.2, 3.0, 0), at3(aS, HY), ease(u)); }
+      else if (u < 1.8) tgt.copy(at3(aS, lerpA(HY, GY, ease((u - 1) / .8))));
+      else if (u < 2.3) { tgt.copy(at3(aS, GY)); grip = ease((u - 1.8) / .5); }
+      else if (u < 3.1) { tgt.copy(at3(aS, lerpA(GY, HY, ease((u - 2.3) / .8)))); grip = 1; }
+      else if (u < 4.7) { tgt.copy(at3(lerpA(aS, aD, ease((u - 3.1) / 1.6)), HY)); grip = 1; }
+      else if (u < 5.5) { tgt.copy(at3(aD, lerpA(HY, GY, ease((u - 4.7) / .8)))); grip = 1; }
+      else if (u < 6.0) { tgt.copy(at3(aD, GY)); grip = 1 - ease((u - 5.5) / .5); }
+      else if (u < 6.8) tgt.copy(at3(aD, lerpA(GY, HY, ease((u - 6) / .8))));
+      else if (u < 8.3) tgt.lerpVectors(at3(aD, HY), new THREE.Vector3(2.2, 3.0, 0), ease((u - 6.8) / 1.5));
+      else tgt.set(2.2, 3.0, 0);
+      tw.copy(tgt); g.localToWorld(tw); aim(tw);
+      const gap = .5 - .12 * grip; fL.position.z = gap; fR.position.z = -gap;
+      if (u < 2.1) cube.position.copy(at3(aS, PY));
+      else if (u < 5.7) cube.position.set(tgt.x, tgt.y + .0 - .0, tgt.z).setY(Math.max(PY, tgt.y));
+      else cube.position.copy(at3(aD, PY));
     };
   } else if (type === 'bars') {
     const hs = [1.2, 2.1, 1.7, 2.8, 2.3, 3.2];
@@ -612,7 +783,7 @@ function makeViewer(container, { model, placeholder, interactive = false, spin =
   scene.add(new THREE.HemisphereLight(0xffffff, 0x223344, 1.2)); const sun = new THREE.DirectionalLight(0xffffff, 2.2); sun.position.set(5, 8, 5); scene.add(sun);
   const redT = root.dataset.theme === 'red'; scene.add(new THREE.GridHelper(14, 28, redT ? 0x6b7280 : 0x2a6f8f, redT ? 0x30343b : 0x1b2a38));
   const holder = new THREE.Group(); scene.add(holder);
-  const usePH = () => { const o = buildPlaceholder(placeholder); if (o.userData.fit) o.userData.fit *= .72; fitInto(holder, o); };
+  const usePH = () => { const o = buildPlaceholder(placeholder); if (o.userData.fit) o.userData.fit *= .72; if (o.userData.cam) { cam.position.set(...o.userData.cam); cam.lookAt(0, 1.2, 0); } fitInto(holder, o); };
   if (model) new GLTFLoader().load(model, gl => fitInto(holder, gl.scene), undefined, () => { console.warn('Model failed, using placeholder:', model); usePH(); }); else usePH();
   let controls = null, spinOn = spin;
   if (interactive) { controls = new OrbitControls(cam, renderer.domElement); controls.target.set(0, 1.2, 0); controls.enableDamping = true; controls.enablePan = false; controls.autoRotateSpeed = 1.6; }
