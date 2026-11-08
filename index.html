@@ -805,8 +805,8 @@ function makeViewer(container, { model, placeholder, interactive = false, spin =
   let visible = true, alive = true, raf; const vio = new IntersectionObserver(([e]) => visible = e.isIntersecting); vio.observe(container);
   const clock = new THREE.Clock(); let yaw = .6;
   (function loop() { if (!alive) return; raf = requestAnimationFrame(loop); if (!visible) return; const dt = clock.getDelta(), t = clock.elapsedTime;
-    if (holder.userData.tick && !reduce) holder.userData.tick(t + 0.001);
-    if (controls) { controls.autoRotate = spinOn && !reduce; controls.update(); } else if (!reduce) { yaw += dt * (hover ? 1.4 : .35); holder.rotation.y = yaw; }
+    if (holder.userData.tick && (interactive || !reduce)) holder.userData.tick(t + 0.001);  // project viewer always animates the model; Reduce Motion only stops the card thumbnails
+    if (controls) { controls.autoRotate = spinOn; controls.update(); } else if (!reduce) { yaw += dt * (hover ? 1.4 : .35); holder.rotation.y = yaw; }
     renderer.render(scene, cam); })();
   return {
     setWire(on) { holder.traverse(o => { if (o.isMesh) [].concat(o.material).forEach(m => m.wireframe = on); }); },
@@ -833,8 +833,8 @@ function openProject(i) {
     ${(p.links||[]).map(l=>`<a class="btn" href="${esc(l.url)}" target="_blank" rel="noopener">${esc(l.label)}</a>`).join('')}`;
   $('#b-prev').onclick = () => openProject(cur - 1); $('#b-next').onclick = () => openProject(cur + 1); $('#m-close').onclick = closeModal;
   if (mv) mv.dispose(); $('#m-view').innerHTML = '';
-  mv = makeViewer($('#m-view'), { placeholder: p.placeholder, model: p.model, interactive: true });
-  $('#b-spin').classList.add('on'); $('#b-wire').classList.remove('on');
+  mv = makeViewer($('#m-view'), { placeholder: p.placeholder, model: p.model, interactive: true, spin: !reduce });
+  $('#b-spin').classList.toggle('on', !reduce); $('#b-spin').setAttribute('aria-pressed', String(!reduce)); $('#b-wire').classList.remove('on');
   setupMedia(p);
   { const wasOpen = modal.classList.contains('open'); modal.classList.add('open'); document.body.style.overflow = 'hidden';
     try { if (wasOpen) history.replaceState({ m: 1 }, '', '#p-' + p.id); else history.pushState({ m: 1 }, '', '#p-' + p.id); } catch (e) {} }
