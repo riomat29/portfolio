@@ -182,6 +182,28 @@ summary.tap{border-radius:8px;background:color-mix(in srgb,var(--acc) 12%,transp
 .ftab.on{background:var(--acc);border-color:var(--acc);color:var(--accfg);font-weight:600}
 .ftab[aria-expanded="true"]{box-shadow:0 0 0 2px rgba(var(--glow),.7)}
 .mi[aria-selected="true"]{background:color-mix(in srgb,var(--acc) 12%,transparent)}
+
+/* ---------- Glass finish: translucent panels, blur, light edges ---------- */
+:root{--g-fill:36%;--g-edge:color-mix(in srgb,var(--txt) 30%,transparent);--g-hi:rgba(255,255,255,.26);--g-shadow:0 14px 40px rgba(0,0,0,.32)}
+:root[data-theme="light"],:root[data-theme="red"]{--g-hi:rgba(255,255,255,.7);--g-shadow:0 14px 36px rgba(60,45,20,.2)}
+.card,.stat,details.job,.mail,#menu,#fmenu{
+  background:linear-gradient(135deg,var(--g-hi),rgba(255,255,255,0) 46%),color-mix(in srgb,var(--panel) var(--g-fill),transparent);
+  border:1px solid var(--g-edge);box-shadow:inset 0 1px 0 var(--g-hi),var(--g-shadow);
+  -webkit-backdrop-filter:blur(22px) saturate(1.5);backdrop-filter:blur(22px) saturate(1.5)}
+.btn,.chip,.sk,.ftab,#q{
+  background:linear-gradient(180deg,var(--g-hi),rgba(255,255,255,0)),color-mix(in srgb,var(--panel) 34%,transparent);
+  border:1px solid var(--g-edge);box-shadow:inset 0 1px 0 var(--g-hi)}
+.btn,.ftab,#q{-webkit-backdrop-filter:blur(14px) saturate(1.4);backdrop-filter:blur(14px) saturate(1.4)}
+nav{background:color-mix(in srgb,var(--bg) 40%,transparent);-webkit-backdrop-filter:blur(26px) saturate(1.6);backdrop-filter:blur(26px) saturate(1.6);border-bottom:1px solid var(--g-edge);box-shadow:inset 0 -1px 0 var(--g-hi)}
+section.s{background:color-mix(in srgb,var(--bg) 52%,transparent);-webkit-backdrop-filter:blur(4px);border-top:1px solid var(--g-edge)}
+@media(min-width:901px){section.s{-webkit-backdrop-filter:none;backdrop-filter:none;background:linear-gradient(90deg,color-mix(in srgb,var(--bg) 84%,transparent) 0,color-mix(in srgb,var(--bg) 58%,transparent) 50%,color-mix(in srgb,var(--bg) 12%,transparent) 100%)}}
+.card:hover,.chip:hover,.btn:hover{border-color:color-mix(in srgb,var(--acc) 60%,var(--g-edge))}
+#modal{background:rgba(8,8,8,.42);-webkit-backdrop-filter:blur(26px) saturate(1.4);backdrop-filter:blur(26px) saturate(1.4)}
+#m-box{background:color-mix(in srgb,var(--panel) 54%,transparent);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px)}
+#m-nav button,#m-ctrl button,#m-strip .ms.tab{-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
+#stage::before{content:"";position:absolute;inset:0;background:radial-gradient(55vmax 55vmax at 88% 6%,rgba(var(--glow),.5),transparent 62%),radial-gradient(50vmax 50vmax at 4% 72%,color-mix(in srgb,var(--acc2) 30%,transparent),transparent 62%),radial-gradient(40vmax 40vmax at 60% 100%,rgba(var(--glow),.28),transparent 65%)}
+:root[data-theme="light"] #stage::before,:root[data-theme="red"] #stage::before{opacity:.55}
+@media (prefers-reduced-transparency:reduce){.card,.stat,details.job,.mail,#menu,#fmenu,.btn,.chip,.sk,.ftab,#q,nav,section.s,#m-box{background:var(--panel);-webkit-backdrop-filter:none;backdrop-filter:none}#modal{background:rgba(8,8,8,.9);-webkit-backdrop-filter:none;backdrop-filter:none}}
 </style>
 <script type="importmap">
 {"imports":{"three":"./vendor/three.module.min.js","three/addons/":"./vendor/addons/"}}
