@@ -40,6 +40,36 @@ a{color:var(--acct);text-decoration:none}a:hover{text-decoration:underline}
 #prog{position:fixed;top:env(safe-area-inset-top,0px);left:0;height:3px;width:0;background:linear-gradient(90deg,var(--acc),var(--acc2));z-index:75}
 nav{position:sticky;top:env(safe-area-inset-top,0px);z-index:60;background:color-mix(in srgb,var(--bg) 82%,transparent);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
 nav .wrap{display:flex;gap:6px;align-items:center;height:56px;overflow-x:auto;white-space:nowrap;scrollbar-width:none}
+nav a.brand{color:inherit;text-decoration:none}nav a.brand:hover{color:var(--acct);text-decoration:none}
+@media(max-width:900px){nav a.l{padding:6px 9px}nav .wrap{gap:3px}}
+nav a.l .ic{display:none}
+@media(max-width:810px){
+  nav .wrap{gap:1px;overflow-x:visible;justify-content:space-between}
+  nav b{display:none}
+  nav .wrap a.l{padding:8px 9px;display:inline-flex;align-items:center;gap:6px;font-size:12px;text-transform:none;letter-spacing:.01em;white-space:nowrap}
+  nav .wrap a.l .ic{display:block;flex:none}
+  nav .wrap a.l .tx{display:none}
+  nav .wrap a.l.on .tx{display:inline}
+  #theme{flex:none}
+}
+@media(max-width:380px){nav .wrap a.l.on .tx{display:none}}
+#dock{display:none}
+@media(max-width:600px){
+  nav .wrap a.l{display:none}
+  nav b,nav .wrap b{display:block}
+  #dock{display:flex;flex-direction:column;gap:2px;position:fixed;right:max(6px,env(safe-area-inset-right));top:50%;transform:translateY(-50%);z-index:55;padding:4px;border-radius:999px;
+    background:color-mix(in srgb,var(--panel) 62%,transparent);border:1px solid var(--g-edge);box-shadow:inset 0 1px 0 var(--g-hi),var(--g-shadow);-webkit-backdrop-filter:blur(10px) saturate(1.3);backdrop-filter:blur(10px) saturate(1.3);transition:opacity .25s}
+  #dock a{position:relative;display:grid;place-items:center;width:38px;height:38px;border-radius:50%;color:var(--mut);text-decoration:none;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+  #dock a svg{display:block}
+  #hero .wrap,section.s .wrap,footer .wrap{padding-right:max(56px,calc(env(safe-area-inset-right,0px) + 52px))}
+  #dock a.on{color:var(--txt);background:color-mix(in srgb,var(--acc) 30%,transparent);box-shadow:inset 0 0 0 1.5px var(--acc)}
+  #dock a.on::before{display:none;content:attr(data-l);position:absolute;right:calc(100% + 10px);top:50%;transform:translateY(-50%);white-space:nowrap;font-size:12px;font-weight:600;padding:6px 11px;border-radius:999px;color:var(--txt);background:color-mix(in srgb,var(--panel) 88%,transparent);border:1px solid var(--g-edge);box-shadow:var(--g-shadow);pointer-events:none}
+  #dock.peek a.on::before{display:block}
+  #dock.scrolling{opacity:.6}
+  body.modal-open #dock{display:none}
+}
+}
+nav a.l.home{display:inline-grid;place-items:center;padding:6px 10px}nav a.l.home svg{display:block}
 nav b{margin-right:auto;font-family:var(--f-display);letter-spacing:.06em;font-size:16px;font-weight:600;padding-right:10px}
 nav a.l{color:var(--mut);font-size:13px;padding:6px 12px;border-radius:999px;text-transform:uppercase;letter-spacing:.06em}
 nav a.l:hover{color:var(--txt);text-decoration:none}
@@ -267,7 +297,17 @@ const effTheme = () => root.dataset.theme || 'dark';  // dark navy and blue is a
 /* ---------- Render ---------- */
 const sections = [['about','About'],['projects','Projects'],['experience','Experience'],['skills','Skills'],['education','Education'],
   ...(D.extra||[]).map((e,i)=>['extra'+i,e.title]),['contact','Contact']];
-$('#nav').innerHTML = `<b>${esc(P.name)}</b>` + sections.map(([id,l])=>`<a class="l" href="#${id}">${esc(l)}</a>`).join('') + `<button id="theme" aria-label="Change colour theme">◐</button>`;
+const HOME_IC = '<svg class="ic" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 11 12 4l8.5 7"/><path d="M5.5 9.8V20h4.2v-5.2h4.6V20h4.2V9.8"/></svg>';
+const NI = d => `<svg class="ic" viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
+const NAVIC = {
+  about: NI('<circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-3.9 3.1-6 7-6s7 2.1 7 6"/>'),
+  projects: NI('<rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/>'),
+  experience: NI('<rect x="3" y="7" width="18" height="13" rx="2"/><path d="M9 7V5.5A1.5 1.5 0 0 1 10.5 4h3A1.5 1.5 0 0 1 15 5.5V7M3 13h18"/>'),
+  skills: NI('<path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/>'),
+  education: NI('<path d="M2.5 9 12 4l9.5 5-9.5 5z"/><path d="M6.5 11.5V16c1.5 1.6 3.4 2.5 5.5 2.5s4-.9 5.5-2.5v-4.5M21.5 9v5"/>'),
+  contact: NI('<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3.5 7l8.5 6 8.5-6"/>')
+};
+$('#nav').innerHTML = `<b><a class="brand" href="#hero" aria-label="${esc(P.name)}, back to top">${esc(P.name)}</a></b>` + `<a class="l home" href="#hero" aria-label="Home" title="Home"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 11 12 4l8.5 7"/><path d="M5.5 9.8V20h4.2v-5.2h4.6V20h4.2V9.8"/></svg></a>` + sections.map(([id,l])=>`<a class="l" href="#${id}" aria-label="${esc(l)}">${NAVIC[id]||''}<span class="tx">${esc(l)}</span></a>`).join('') + `<button id="theme" aria-label="Change colour theme">◐</button>`;
 const THEMES = [['dark', 'Charcoal, sand and electric blue', '◐'], ['light', 'Forest green and beige', '◑'], ['red', 'Cream, ink and burnt orange', '●'], ['navy', 'Navy, cream and coral', '◆']];
 const paintThemeBtn = () => { const i = Math.max(0, THEMES.findIndex(t => t[0] === effTheme())), nx = THEMES[(i + 1) % THEMES.length], b = $('#theme');
   b.textContent = THEMES[i][2]; b.title = 'Theme: ' + THEMES[i][1] + '. Click for ' + nx[1] + '.'; b.setAttribute('aria-label', b.title); b.style.color = THEMES[i][0] === 'red' ? 'var(--acc)' : ''; };
@@ -341,20 +381,23 @@ const cf = $('#cform'); if (cf) cf.onsubmit = async e => { e.preventDefault(); c
 const prog = $('#prog');
 const onScroll = () => { const max = document.documentElement.scrollHeight - innerHeight; prog.style.width = (max > 0 ? Math.min(100, scrollY / max * 100) : 0) + '%'; };
 addEventListener('scroll', onScroll, { passive: true }); addEventListener('resize', onScroll); onScroll();
-const links = $$('nav a.l'), navWrap = $('#nav'), spySecs = $$('section.s[id]');
+document.body.insertAdjacentHTML('beforeend', `<div id="dock" role="navigation" aria-label="Sections">` + [['hero', 'Home']].concat(sections).map(([id, l]) => `<a href="#${id}" aria-label="${esc(l)}" data-l="${esc(l)}">${id === 'hero' ? HOME_IC : (NAVIC[id] || '')}</a>`).join('') + `</div>`);
+const links = $$('nav a.l, #dock a'), navWrap = $('#nav'), spySecs = $$('section.s[id]');
 let lockUntil = 0, activeId = null;
-const setActive = id => { if (id === activeId) return; activeId = id;
+let peekT; const setActive = id => { if (id === activeId) return; activeId = id; { const d = document.getElementById('dock'); if (d) { d.classList.add('peek'); clearTimeout(peekT); peekT = setTimeout(() => d.classList.remove('peek'), 1400); } }
   links.forEach(a => { const on = a.getAttribute('href') === '#' + id; a.classList.toggle('on', on); if (on) a.setAttribute('aria-current', 'true'); else a.removeAttribute('aria-current'); });
-  const a = links.find(x => x.classList.contains('on'));
+  const a = links.find(x => x.classList.contains('on') && x.closest('nav'));
   if (a) { const wr = navWrap.getBoundingClientRect(), ar = a.getBoundingClientRect();   // keep the active tab in view on a phone
     navWrap.scrollTo({ left: navWrap.scrollLeft + (ar.left - wr.left) - (wr.width - ar.width) / 2, behavior: 'smooth' }); } };
 const spy = () => { if (Date.now() < lockUntil) return;
-  let cur = '', y = innerHeight * .3;
+  let cur = 'hero', y = innerHeight * .3;
   for (const s of spySecs) if (s.getBoundingClientRect().top <= y) cur = s.id;
   if (innerHeight + scrollY >= document.documentElement.scrollHeight - 4) cur = spySecs[spySecs.length - 1].id;
   setActive(cur); };
+$$('nav a.brand').forEach(a => a.addEventListener('click', () => { setActive('hero'); lockUntil = Date.now() + 1100; setTimeout(spy, 1200); }));
 links.forEach(a => a.addEventListener('click', () => { setActive(a.getAttribute('href').slice(1)); lockUntil = Date.now() + 1100; setTimeout(spy, 1200); }));
 let spyQ = false; const spyRaf = () => { if (spyQ) return; spyQ = true; requestAnimationFrame(() => { spyQ = false; spy(); }); };
+const dockEl = $('#dock'); let dockT; addEventListener('scroll', () => { dockEl.classList.add('scrolling'); clearTimeout(dockT); dockT = setTimeout(() => dockEl.classList.remove('scrolling'), 220); }, { passive: true });
 addEventListener('scroll', spyRaf, { passive: true }); addEventListener('resize', spy); spy();
 const cIO = new IntersectionObserver(es => es.forEach(e => { if (!e.isIntersecting) return; cIO.unobserve(e.target); if (reduce) return;
   const to = +e.target.dataset.to, suf = e.target.dataset.suf, t0 = performance.now();
@@ -924,7 +967,7 @@ const fromHash = () => { const m = location.hash.match(/^#p-(.+)$/); if (!m) ret
 addEventListener('hashchange', fromHash); fromHash();
 /* ---------- Touch feedback: glow + ripple on tabs, chips and buttons ---------- */
 (() => {
-  const SEL = 'nav a.l, .chip, .btn, button, .sk, summary';
+  const SEL = 'nav a.l, #dock a, .chip, .btn, button, .sk, summary';
   let held = null;
   const release = () => { if (!held) return; const el = held; held = null;
     setTimeout(() => { el.classList.remove('tap'); el.classList.remove('tapfade'); void el.offsetWidth; el.classList.add('tapfade'); el.addEventListener('animationend', () => el.classList.remove('tapfade'), { once: true }); }, 120); };
