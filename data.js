@@ -12,13 +12,11 @@ window.PORTFOLIO = {
     title: "Mechanical Engineer",
     tagline: "Mechanical Engineer with 5+ years in petrochemical and automotive manufacturing, now specializing in robotics and automation. Completing an MEng at Western University and an Automation Engineering co-op at Linamar, working with ABB robots and Allen-Bradley PLCs.",
     location: "Kitchener, ON",
-    // Email is stored base64-encoded so scrapers do not find it in the page source. To change it: btoa("you@example.com") in the browser console.
-    emailB64: "cmlvbWF0MjlAZ21haWwuY29t",
     // Optional contact form: paste a Formspree-style endpoint (https://formspree.io/f/xxxx) to show a form. Leave "" for none.
     formEndpoint: "",
-    linkedin: "http://www.linkedin.com/in/rijzmatw",
+    linkedin: "https://www.linkedin.com/in/rijzmatw",
     github: "https://riomat29.github.io/portfolio/",
-    // Phone number intentionally NOT published on a public site (spam / privacy).
+    // Phone number and email intentionally NOT published on a public site (spam / privacy).
     roles: ["Mechanical Engineer", "Robotics & Automation"]  // typed under the name in the hero, one after the other, then repeats
   },
 
