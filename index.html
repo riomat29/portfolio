@@ -256,6 +256,26 @@ nav{-webkit-backdrop-filter:blur(16px) saturate(1.4);backdrop-filter:blur(16px) 
 @media(min-width:901px){:root[data-theme="navy"] section.s{-webkit-backdrop-filter:none;backdrop-filter:none;background:linear-gradient(90deg,color-mix(in srgb,var(--bg) 84%,transparent) 0,color-mix(in srgb,var(--bg) 58%,transparent) 50%,color-mix(in srgb,var(--bg) 12%,transparent) 100%)}}
 :root[data-theme="navy"] #modal{background:rgba(8,8,8,.42);-webkit-backdrop-filter:blur(26px) saturate(1.4);backdrop-filter:blur(26px) saturate(1.4)}
 :root[data-theme="navy"] #m-box{background:color-mix(in srgb,var(--panel) 54%,transparent);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px)}
+/* Opening animation: portfolio cards deal out, fan, then lift away to reveal the hero. Skippable, once per session, off under Reduce Motion. */
+#intro{position:fixed;inset:0;z-index:300;display:grid;place-items:center;background:radial-gradient(60% 50% at 50% 48%,rgba(var(--glow),.16),transparent 70%),var(--bg);animation:icFade 2.8s ease-in-out forwards;cursor:pointer;overflow:hidden}
+#intro.out{animation:icQuick .28s ease-out forwards;pointer-events:none}
+#intro{perspective:1100px;perspective-origin:50% 38%}
+#intro .ic-deck{position:relative;width:var(--cw);height:calc(var(--cw)*1.4);margin-top:-4vh;transform-style:preserve-3d;animation:icSpin 2.6s cubic-bezier(.45,.05,.3,1) forwards}
+#intro .ic-card{position:absolute;inset:0;transform-style:preserve-3d;transform:rotateY(var(--a)) translateZ(var(--R))}
+#intro .ic-f,#intro .ic-b{position:absolute;inset:0;border-radius:14px;overflow:hidden;background:var(--panel);border:1px solid var(--line);color:var(--txt);backface-visibility:hidden;-webkit-backface-visibility:hidden;box-shadow:0 14px 30px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.12)}
+#intro .ic-f{display:flex;flex-direction:column;justify-content:space-between;padding:calc(var(--cw)*.1)}
+#intro .ic-b{transform:rotateY(180deg);display:grid;place-items:center;background:linear-gradient(160deg,rgba(255,255,255,.1),transparent 50%),var(--panel)}
+#intro .ic-b::after{content:"";width:34%;aspect-ratio:1;border-radius:50%;border:2px solid var(--acc);box-shadow:0 0 18px rgba(var(--glow),.55),inset 0 0 12px rgba(var(--glow),.35)}
+#intro .ic-f::before,#intro .ic-b::before{content:"";position:absolute;left:0;right:0;top:0;height:5px;background:var(--acc)}
+#intro .ic-f small{font:600 calc(var(--cw)*.07)/1.2 var(--f-mono,monospace);letter-spacing:.06em;text-transform:uppercase;color:var(--acct)}
+#intro .ic-f b{display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden;font-size:calc(var(--cw)*.105);line-height:1.2;margin-top:6px}
+#intro .ic-f i{font:normal 700 calc(var(--cw)*.2)/1 var(--f-mono,monospace);opacity:.22}
+#intro .ic-name{position:absolute;left:0;right:0;bottom:calc(14vh);text-align:center;letter-spacing:.14em;text-transform:uppercase;font-size:13px;color:var(--mut);opacity:0;animation:icName 2.5s ease-out .2s forwards}
+@keyframes icSpin{0%{transform:rotateX(-12deg) rotateY(-40deg) scale(.3)}16%{transform:rotateX(-12deg) rotateY(0deg) scale(1)}100%{transform:rotateX(-8deg) rotateY(330deg) scale(1.4)}}
+@keyframes icName{0%{opacity:0;transform:translateY(8px)}30%,75%{opacity:1;transform:none}100%{opacity:0}}
+@keyframes icFade{0%,80%{opacity:1}100%{opacity:0}}
+@keyframes icQuick{to{opacity:0}}
+@media(prefers-reduced-motion:reduce){#intro{display:none}}
 @media (prefers-reduced-transparency:reduce){.card,.stat,details.job,.mail,#menu,#fmenu,.btn,.chip,.sk,.ftab,#q,nav,section.s,#m-box{background:var(--panel);-webkit-backdrop-filter:none;backdrop-filter:none}#modal{background:rgba(8,8,8,.9);-webkit-backdrop-filter:none;backdrop-filter:none}}
 </style>
 <script type="importmap">
@@ -366,6 +386,25 @@ $('#app').innerHTML =
     <div class="note">No email address is published on this site, to keep spam and impersonation out. LinkedIn is the best way to reach me.</div>`);
 $('#foot').textContent = `© ${new Date().getFullYear()} ${P.name}`;
 
+// Opening animation (portfolio cards). Once per browser session, skipped for deep links and Reduce Motion.
+try {
+  let seen = false; try { seen = sessionStorage.getItem('intro1') === '1'; } catch (e) {}
+  const deep = location.hash && location.hash !== '#hero' && location.hash !== '#';
+  const rm = window.matchMedia && matchMedia('(prefers-reduced-motion:reduce)').matches;
+  if (!seen && !deep && !rm) {
+    try { sessionStorage.setItem('intro1', '1'); } catch (e) {}
+    const n = Math.min(8, D.projects.length), cw = Math.max(88, Math.min(140, innerWidth * 0.24)), R = Math.round(n * cw * 1.12 / (2 * Math.PI));
+    const el = document.createElement('div'); el.id = 'intro'; el.setAttribute('aria-hidden', 'true'); el.style.setProperty('--cw', cw + 'px');
+    el.innerHTML = '<div class="ic-deck">' + D.projects.slice(0, n).map((p, i) =>
+      `<div class="ic-card" style="--a:${(i * 360 / n).toFixed(2)}deg;--R:${R}px"><div class="ic-f"><div><small>${esc(p.tag)}</small><b>${esc(p.title)}</b></div><i>${String(i + 1).padStart(2, '0')}</i></div><div class="ic-b"></div></div>`).join('') + '</div><div class="ic-name">' + esc(P.name) + ' · Portfolio</div>';
+    document.body.appendChild(el);
+    const done = () => { clearTimeout(t); el.remove(); removeEventListener('keydown', skip); };
+    const skip = () => { el.classList.add('out'); setTimeout(done, 300); };
+    const t = setTimeout(done, 3300);
+    el.addEventListener('pointerdown', skip); el.addEventListener('wheel', skip, { passive: true }); el.addEventListener('touchmove', skip, { passive: true }); addEventListener('keydown', skip);
+    el.addEventListener('animationend', e => { if (e.target === el && !el.classList.contains('out')) done(); });
+  }
+} catch (e) {}
 const cf = $('#cform'); if (cf) cf.onsubmit = async e => { e.preventDefault(); const st = $('#cstat'), fd = new FormData(cf); if (fd.get('_gotcha')) return; st.textContent = 'Sending...';
   try { const r = await fetch(P.formEndpoint, { method: 'POST', body: fd, headers: { Accept: 'application/json' } }); if (r.ok) { st.textContent = 'Sent. Thank you, I will reply soon.'; cf.reset(); } else throw 0; }
   catch (err) { st.textContent = 'Could not send from here. Please use LinkedIn instead.'; } };
