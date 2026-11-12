@@ -1162,7 +1162,7 @@ function openProject(i) {
   mv = makeViewer($('#m-view'), { placeholder: p.placeholder, model: p.model, interactive: true, spin: !reduce });
   $('#b-spin').classList.toggle('on', !reduce); $('#b-spin').setAttribute('aria-pressed', String(!reduce)); $('#b-wire').classList.remove('on');
   setupMedia(p);
-  { const wasOpen = modal.classList.contains('open'); if (wasOpen && !reduce) { const bx = $('#m-box'); bx.classList.remove('flip'); void bx.offsetWidth; bx.classList.add('flip'); bx.addEventListener('animationend', () => bx.classList.remove('flip'), { once: true }); } if (!wasOpen) { modal.style.setProperty('--ox', lastPt.x + 'px'); modal.style.setProperty('--oy', lastPt.y + 'px'); } modal.classList.add('open'); document.body.style.overflow = 'hidden';
+  { const wasOpen = modal.classList.contains('open'); if (wasOpen && !reduce) { const bx = $('#m-box'); bx.classList.remove('flip'); void bx.offsetWidth; bx.classList.add('flip'); } if (!wasOpen) { $('#m-box').classList.remove('flip'); modal.style.setProperty('--ox', lastPt.x + 'px'); modal.style.setProperty('--oy', lastPt.y + 'px'); } modal.classList.add('open'); document.body.style.overflow = 'hidden';
     try { if (wasOpen) history.replaceState({ m: 1 }, '', '#p-' + p.id); else history.pushState({ m: 1 }, '', '#p-' + p.id); } catch (e) {} }
   $('#m-close').focus({ preventScroll: true });
 }
