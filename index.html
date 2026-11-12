@@ -390,6 +390,8 @@ details.job.pop{animation:jobIn .6s cubic-bezier(.2,.8,.2,1) backwards}
 .btn.pri.ring{animation:ringPulse 1.6s ease-out 3}
 @keyframes ringPulse{0%{box-shadow:0 0 0 0 rgba(var(--glow),.55)}100%{box-shadow:0 0 0 16px rgba(var(--glow),0)}}
 }
+.card.more{display:none}
+.morewrap{text-align:center;margin-top:22px}.morewrap .btn{margin:0;min-height:44px;padding-left:28px;padding-right:28px}
 </style>
 <script type="importmap">
 {"imports":{"three":"./vendor/three.module.min.js","three/addons/":"./vendor/addons/"}}
@@ -488,8 +490,8 @@ const stats = (D.stats||[]).map(s=>{ const to = s.value==='projects'?D.projects.
 $('#hero').insertAdjacentHTML('beforeend', `<div class="wrap hero-stats"><div class="stats">${stats}</div></div>`);
 $('#app').innerHTML =
   sec('about','About',D.about.map(t=>`<p style="max-width:760px;white-space:pre-line">${esc(t).replace(/(^|\n)(Where I am heading:|Next:|Then:|Longer term:)/g, '$1<b style="color:var(--acc)">$2</b>')}</p>`).join('')+`<div>${pills(D.certifications)}</div>`) +
-  sec('projects','Projects',`<div id="reel-view" role="group" aria-label="Project reel. Drag to spin, tap a card to open it."></div><div class="reel-bar"><span class="reel-hint">Drag to spin · tap a card to open</span><button id="reel-go" type="button"><span id="reel-lab"></span><span aria-hidden="true"> &rarr;</span></button></div><div class="tools">${chips}<span class="qwrap"><input id="q" type="search" placeholder="Search projects, tools" aria-label="Search projects"><button id="qclear" type="button" aria-label="Clear search" title="Clear search" hidden>&times;</button></span></div>
-    <div id="rescount" class="rescount" aria-live="polite"></div><div class="grid" id="grid">${cards}</div><div id="none">No projects match. <button type="button" class="lnk" data-clear>Clear search and filters</button></div>`) +
+  sec('projects','Projects',`<div id="reel-view" role="group" aria-label="Project reel. Drag to spin, tap a card to open it."></div><div class="reel-bar"><span class="reel-hint">Drag to spin · tap a card to open</span></div><div class="tools">${chips}<span class="qwrap"><input id="q" type="search" placeholder="Search projects, tools" aria-label="Search projects"><button id="qclear" type="button" aria-label="Clear search" title="Clear search" hidden>&times;</button></span></div>
+    <div id="rescount" class="rescount" aria-live="polite"></div><div class="grid" id="grid">${cards}</div><div class="morewrap"><button type="button" id="morebtn" class="btn" hidden></button></div><div id="none">No projects match. <button type="button" class="lnk" data-clear>Clear search and filters</button></div>`) +
   sec('experience','Experience',`<div class="tl">${exp}</div>`) +
   sec('skills','Skills',`<div class="skills">${skills}</div><div class="note">Click any skill to see the projects that use it.</div>`) +
   sec('education','Education',`<div class="tl">${edu}</div>`) + extra +
@@ -589,17 +591,20 @@ $$('[data-to]').forEach(el => cIO.observe(el));
 /* ---------- Project filter + search + skill links ---------- */
 let chip = 'All'; const q = $('#q');
 const hay = p => [p.title, p.tag, p.status, p.summary, ...(p.tools || []), ...(p.bullets || [])].join(' ').toLowerCase();
+let showAll = false;
 function applyFilter() {
-  const s = q.value.trim().toLowerCase(); let n = 0;
+  const s = q.value.trim().toLowerCase(); let n = 0; const filtering = !!s || chip !== 'All';
   $$('.card').forEach(c => { const p = D.projects[+c.dataset.i];
     const okChip = matchCat(p, chip);
-    const ok = okChip && (!s || hay(p).includes(s)); c.classList.toggle('hide', !ok); if (ok) n++; });
+    const ok = okChip && (!s || hay(p).includes(s)); c.classList.toggle('hide', !ok); if (ok) { c.classList.toggle('more', !(showAll || filtering || n < 3)); n++; } });
+  const extra = n - 3, mb = $('#morebtn'); mb.hidden = filtering || extra <= 0; mb.textContent = showAll ? 'Show fewer projects' : `View more projects (${Math.max(extra, 0)})`; mb.setAttribute('aria-expanded', String(showAll));
   $('#none').style.display = n ? 'none' : 'block';
   const tot = $$('.card').length; $('#rescount').innerHTML = (n === tot) ? `${tot} projects` : `Showing ${n} of ${tot} projects &middot; <button type="button" class="lnk" data-clear>Clear all</button>`;
 }
 const setChip = c => { chip = c; $('#fltbtn').classList.toggle('on', c !== 'All'); $('#fltlabel').textContent = c === 'All' ? 'Filter' : c; $$('#fmenu .mi').forEach(m => m.setAttribute('aria-selected', String(m.dataset.filter === c))); applyFilter(); };
 document.addEventListener('click', e => { if (e.target.closest('[data-clear]')) { q.value = ''; syncQ(); setChip('All'); } });
 const qc = $('#qclear');
+$('#morebtn').onclick = () => { showAll = !showAll; applyFilter(); if (!showAll) $('#projects').scrollIntoView({ behavior: reduce ? 'auto' : 'smooth' }); };
 const syncQ = () => { qc.hidden = !q.value; };
 applyFilter();
 q.oninput = () => { syncQ(); applyFilter(); };
@@ -1193,7 +1198,7 @@ addEventListener('hashchange', fromHash); fromHash();
   const N = D.projects.length, CW = 360, CH = 450, STEP = Math.PI * 2 / N;
   const css = n => getComputedStyle(root).getPropertyValue(n).trim();
   const ringEl = document.createElement('div'); ringEl.className = 'reel-ring'; host.appendChild(ringEl);
-  const cards = D.projects.map((p, i) => { const cv = document.createElement('canvas'); cv.width = CW; cv.height = CH; cv.className = 'rc'; cv.dataset.i = i; cv.setAttribute('role', 'img'); cv.setAttribute('aria-label', p.title);
+  const cards = D.projects.map((p, i) => { const cv = document.createElement('canvas'); cv.width = CW; cv.height = CH; cv.className = 'rc'; cv.dataset.i = i; cv.setAttribute('role', 'button'); cv.tabIndex = 0; cv.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openProject(i); } }); cv.setAttribute('aria-label', p.title);
     const w = document.createElement('div'); w.className = 'rw'; w.appendChild(cv); ringEl.appendChild(w); return { cv, w, p, i, img: null }; });
   const wrapTxt = (g, t, x, y, w, lh, max) => { const ws = t.split(' '), L = []; let line = ''; for (const w1 of ws) { const test = line ? line + ' ' + w1 : w1; if (g.measureText(test).width > w && line) { L.push(line); line = w1; } else line = test; } L.push(line); if (L.length > max) { L.length = max; let l = L[max - 1]; while (l && g.measureText(l + '…').width > w) l = l.slice(0, -1); L[max - 1] = l.trimEnd() + '…'; } L.forEach((l, k) => g.fillText(l, x, y + k * lh)); };
   const paint = c => { const g = c.cv.getContext('2d'), mono = css('--f-mono') || 'monospace', body = css('--f-body') || 'Inter, system-ui, sans-serif', studio = root.dataset.theme === 'studio';
@@ -1220,9 +1225,7 @@ addEventListener('hashchange', fromHash); fromHash();
     host.style.setProperty('--cw', cw + 'px'); host.style.setProperty('--ch', ch + 'px'); host.style.perspective = Math.max(900, R * 2.3) + 'px';
     cards.forEach(c => { const th = c.i * STEP, tilt = Math.sin(th * 2) * 7; c.w.style.transform = `rotateY(${th}rad) translateZ(${R}px) rotateZ(${tilt}deg)`; }); };
   new ResizeObserver(layout).observe(host); layout();
-  const lab = $('#reel-lab'), go = $('#reel-go'); let labI = -1;
-  const front = () => { const k = Math.round(-rot / STEP); return ((k % N) + N) % N; };
-  host.style.touchAction = 'pan-y'; host.style.cursor = 'grab';
+    host.style.touchAction = 'pan-y'; host.style.cursor = 'grab';
   host.addEventListener('pointerdown', e => { drag = { lx: e.clientX, moved: 0, id: e.pointerId, t: e.target }; vel = 0; });
   addEventListener('pointermove', e => { if (!drag || e.pointerId !== drag.id) return; const dx = e.clientX - drag.lx; drag.lx = e.clientX; drag.moved += Math.abs(dx); if (drag.moved > 6) host.style.cursor = 'grabbing'; rot += dx * .006; vel = dx * .006; });
   addEventListener('pointerup', e => { if (!drag || e.pointerId !== drag.id) return; const d = drag; drag = null; host.style.cursor = 'grab'; if (d.moved <= 6) { const c = d.t.closest && d.t.closest('canvas.rc'); if (c) openProject(+c.dataset.i); } else vel = reduce ? 0 : Math.max(-.05, Math.min(.05, vel)); });
@@ -1233,9 +1236,8 @@ addEventListener('hashchange', fromHash); fromHash();
     const dt = Math.min(50, now - lastT); lastT = now;
     if (!drag) { rot += vel * dt / 16; if (reduce) vel *= .9; else vel += ((hov ? 0 : .0035) - vel) * .03; }
     ringEl.style.transform = `translateZ(${-R}px) rotateY(${rot}rad)`;
-    const f = front(); if (f !== labI) { labI = f; lab.textContent = D.projects[f].title; go.setAttribute('aria-label', 'Open project: ' + D.projects[f].title); go.dataset.i = f; } };
+  };
   requestAnimationFrame(tick);
-  go.addEventListener('click', () => openProject(+go.dataset.i || 0));
   $('#theme').addEventListener('click', () => setTimeout(paintAll, 60));
 })();
 </script>
