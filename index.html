@@ -365,7 +365,8 @@ html.hero-in #hero .hero-text>*,html.hero-in #hero .stat{animation:heroUp .8s cu
 /* Selected-work reel */
 #reel-view{position:relative;transform-style:flat;height:clamp(270px,42vh,390px);margin:0 -4px 6px;border-radius:var(--r);overflow:hidden;user-select:none;-webkit-user-select:none}
 #reel-view .reel-ring{position:absolute;left:50%;top:50%;width:0;height:0;transform-style:preserve-3d;will-change:transform}
-#reel-view .rw{position:absolute;left:calc(var(--cw)/-2);top:calc(var(--ch)/-2);width:var(--cw);height:var(--ch);backface-visibility:hidden;-webkit-backface-visibility:hidden}
+#reel-view .rw{position:absolute;left:calc(var(--cw)/-2);top:calc(var(--ch)/-2);width:var(--cw);height:var(--ch);backface-visibility:visible;-webkit-backface-visibility:visible}
+#reel-view .rw::after{content:"";position:absolute;inset:0;background:var(--txt);opacity:var(--ln,0);pointer-events:none}
 #reel-view canvas.rc{width:100%;height:100%;display:block;border-radius:6px;cursor:pointer;transition:filter .2s,transform .25s cubic-bezier(.2,.8,.2,1)}
 @media(hover:hover){#reel-view canvas.rc:hover{filter:brightness(1.12);transform:scale(1.04)}}
 .reel-bar{margin-bottom:18px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-top:12px}
@@ -1276,7 +1277,12 @@ addEventListener('hashchange', fromHash); fromHash();
   let rot = 0, vel = .004, drag = null, visible = false, hov = false, lastT = performance.now(), Ax = 400, Az = 200, Ay = 40, wt = 0;
   const useRing = () => true;  // ring layout everywhere; return false to bring back the dragon path
   let ringMode = useRing(), R = 500;  
-  const place = () => { if (ringMode) { ringEl.style.transform = `translateZ(${-R}px) rotateY(${rot}rad)`; return; } ringEl.style.transform = 'none'; cards.forEach(c => { const th = rot + c.i * STEP, ph = th * 3 - wt,
+  const place = () => { if (ringMode) { ringEl.style.transform = `translateZ(${-R}px) rotateY(${rot}rad)`;
+      // Cards that swing to the back collapse into a thin line behind the others, and unfold back into cards as they return to the front.
+      const minY = 3 / (parseFloat(host.style.getPropertyValue('--ch')) || 300);
+      cards.forEach(c => { const th = c.i * STEP; let v = (Math.cos(th + rot) + .1) / .55; v = v < 0 ? 0 : v > 1 ? 1 : v; v = v * v * (3 - 2 * v);
+        c.w.style.transform = `rotateY(${th}rad) translateZ(${R}px) rotateZ(${(Math.sin(th * 2) * 7).toFixed(2)}deg) scaleY(${Math.max(minY, v).toFixed(3)})`; c.w.style.opacity = (.55 + .45 * v).toFixed(2); c.w.style.setProperty('--ln', ((1 - v) * .75).toFixed(2)); });
+      return; } ringEl.style.transform = 'none'; cards.forEach(c => { const th = rot + c.i * STEP, ph = th * 3 - wt,
       x = Ax * Math.sin(th), z = Az * Math.sin(2 * th), y = Ay * Math.sin(ph),
       dx = Ax * Math.cos(th), dz = 2 * Az * Math.cos(2 * th), dy = 3 * Ay * Math.cos(ph),
       yaw = -1.0 * dx * dz / (dx * dx + dz * dz + 1), k = Ax * .5, bank = Math.atan(dy * dx / (dx * dx + k * k)) * .7;
