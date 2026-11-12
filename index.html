@@ -292,7 +292,7 @@ details.job:hover{box-shadow:var(--e2)}
 section.s h2::before{display:none}
 .rescount{color:var(--mut);font-size:13px;font-weight:500;margin:-6px 0 14px}
 .lnk{background:none;border:0;padding:0;font:inherit;color:var(--acct);cursor:pointer;text-decoration:underline;text-underline-offset:3px}
-@media(min-width:700px){.tools{position:sticky;top:calc(56px + env(safe-area-inset-top,0px));z-index:6;padding:12px 0;margin-bottom:6px;background:color-mix(in srgb,var(--bg) 90%,transparent);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border-radius:0 0 16px 16px}}
+@media(min-width:700px){.tools{position:sticky;top:calc(56px + env(safe-area-inset-top,0px));z-index:6;padding:12px 0;margin-bottom:6px;background:none;-webkit-backdrop-filter:none;backdrop-filter:none;box-shadow:none;border-radius:0}}
 .card{cursor:pointer}.card button.open,.card a{cursor:pointer}
 .skip{position:fixed;left:12px;top:-60px;z-index:400;padding:10px 16px;border-radius:999px;background:var(--acc);color:var(--accfg);font-weight:600;transition:top .15s}.skip:focus{top:calc(10px + env(safe-area-inset-top,0px));text-decoration:none}
 #totop{position:fixed;right:20px;bottom:20px;z-index:60;width:46px;height:46px;border-radius:50%;display:grid;place-items:center;border:1px solid var(--line);color:var(--txt);cursor:pointer;background:linear-gradient(180deg,var(--g-hi),rgba(255,255,255,0)),color-mix(in srgb,var(--panel) 70%,transparent);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);box-shadow:var(--e1);opacity:0;transform:translateY(12px);pointer-events:none;transition:opacity .25s,transform .25s,border-color .2s}
@@ -348,7 +348,7 @@ html.hero-in #hero .hero-text>*,html.hero-in #hero .stat{animation:heroUp .8s cu
 :root[data-theme="studio"] .card:hover{border-color:var(--txt)}
 :root[data-theme="studio"] .stat b{font-family:var(--f-mono);font-weight:500;letter-spacing:-.06em;color:var(--txt);text-transform:uppercase}
 :root[data-theme="studio"] .btn.pri,:root[data-theme="studio"] .chip.on,:root[data-theme="studio"] .ftab.on{background:var(--txt);color:var(--bg);border-color:var(--txt);background-image:none}
-:root[data-theme="studio"] nav,:root[data-theme="studio"] .tools{background:color-mix(in srgb,var(--bg) 92%,transparent)}
+:root[data-theme="studio"] nav{background:color-mix(in srgb,var(--bg) 92%,transparent)}
 :root[data-theme="studio"] .card h3,:root[data-theme="studio"] details.job summary{text-transform:uppercase;letter-spacing:-.01em;font-weight:500}
 
 /* Selected-work reel */
