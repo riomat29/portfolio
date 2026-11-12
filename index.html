@@ -259,9 +259,9 @@ nav{-webkit-backdrop-filter:blur(16px) saturate(1.4);backdrop-filter:blur(16px) 
 /* Opening animation: portfolio cards deal out, fan, then lift away to reveal the hero. Skippable, once per session, off under Reduce Motion. */
 #intro{position:fixed;inset:0;z-index:300;display:grid;place-items:center;background:radial-gradient(60% 50% at 50% 48%,rgba(var(--glow),.16),transparent 70%),var(--bg);animation:icFade 2.8s ease-in-out forwards;cursor:pointer;overflow:hidden}
 #intro.out{animation:icQuick .28s ease-out forwards;pointer-events:none}
-#intro{perspective:1100px;perspective-origin:50% 38%}
-#intro .ic-deck{position:relative;width:var(--cw);height:calc(var(--cw)*1.4);margin-top:-4vh;transform-style:preserve-3d;animation:icSpin 2.6s cubic-bezier(.45,.05,.3,1) forwards}
-#intro .ic-card{position:absolute;inset:0;transform-style:preserve-3d;transform:rotateY(var(--a)) translateZ(var(--R))}
+#intro{-webkit-perspective:1100px;perspective:1100px;perspective-origin:50% 38%}
+#intro .ic-deck{position:relative;width:var(--cw);height:calc(var(--cw)*1.4);margin-top:-4vh;-webkit-transform-style:preserve-3d;transform-style:preserve-3d;will-change:transform;animation:icSpin 2.6s cubic-bezier(.45,.05,.3,1) forwards}
+#intro .ic-card{position:absolute;inset:0;-webkit-transform-style:preserve-3d;transform-style:preserve-3d;transform:rotateY(var(--a)) translateZ(var(--R))}
 #intro .ic-f,#intro .ic-b{position:absolute;inset:0;border-radius:14px;overflow:hidden;background:var(--panel);border:1px solid var(--line);color:var(--txt);backface-visibility:hidden;-webkit-backface-visibility:hidden;box-shadow:0 14px 30px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.12)}
 #intro .ic-f{display:flex;flex-direction:column;justify-content:space-between;padding:calc(var(--cw)*.1)}
 #intro .ic-b{transform:rotateY(180deg);display:grid;place-items:center;background:linear-gradient(160deg,rgba(255,255,255,.1),transparent 50%),var(--panel)}
@@ -275,7 +275,9 @@ nav{-webkit-backdrop-filter:blur(16px) saturate(1.4);backdrop-filter:blur(16px) 
 @keyframes icName{0%{opacity:0;transform:translateY(8px)}30%,75%{opacity:1;transform:none}100%{opacity:0}}
 @keyframes icFade{0%,80%{opacity:1}100%{opacity:0}}
 @keyframes icQuick{to{opacity:0}}
-@media(prefers-reduced-motion:reduce){#intro{display:none}}
+#intro.calm{animation-duration:1.9s}
+#intro.calm .ic-deck{animation:icCalm 1.9s ease-out forwards}
+@keyframes icCalm{0%{transform:rotateX(-12deg) rotateY(-14deg) scale(.88)}100%{transform:rotateX(-12deg) rotateY(-14deg) scale(1)}}
 @media (prefers-reduced-transparency:reduce){.card,.stat,details.job,.mail,#menu,#fmenu,.btn,.chip,.sk,.ftab,#q,nav,section.s,#m-box{background:var(--panel);-webkit-backdrop-filter:none;backdrop-filter:none}#modal{background:rgba(8,8,8,.9);-webkit-backdrop-filter:none;backdrop-filter:none}}
 </style>
 <script type="importmap">
@@ -391,16 +393,17 @@ try {
   let seen = false; try { seen = sessionStorage.getItem('intro1') === '1'; } catch (e) {}
   const deep = location.hash && location.hash !== '#hero' && location.hash !== '#';
   const rm = window.matchMedia && matchMedia('(prefers-reduced-motion:reduce)').matches;
-  if (!seen && !deep && !rm) {
+  const force = /[?&]intro\b/.test(location.search);
+  if ((force || !seen) && !deep) {
     try { sessionStorage.setItem('intro1', '1'); } catch (e) {}
     const n = Math.min(8, D.projects.length), cw = Math.max(88, Math.min(140, innerWidth * 0.24)), R = Math.round(n * cw * 1.12 / (2 * Math.PI));
-    const el = document.createElement('div'); el.id = 'intro'; el.setAttribute('aria-hidden', 'true'); el.style.setProperty('--cw', cw + 'px');
+    const el = document.createElement('div'); el.id = 'intro'; if (rm) el.classList.add('calm'); el.setAttribute('aria-hidden', 'true'); el.style.setProperty('--cw', cw + 'px');
     el.innerHTML = '<div class="ic-deck">' + D.projects.slice(0, n).map((p, i) =>
       `<div class="ic-card" style="--a:${(i * 360 / n).toFixed(2)}deg;--R:${R}px"><div class="ic-f"><div><small>${esc(p.tag)}</small><b>${esc(p.title)}</b></div><i>${String(i + 1).padStart(2, '0')}</i></div><div class="ic-b"></div></div>`).join('') + '</div><div class="ic-name">' + esc(P.name) + ' · Portfolio</div>';
     document.body.appendChild(el);
     const done = () => { clearTimeout(t); el.remove(); removeEventListener('keydown', skip); };
     const skip = () => { el.classList.add('out'); setTimeout(done, 300); };
-    const t = setTimeout(done, 3300);
+    const t = setTimeout(done, rm ? 2200 : 3300);
     el.addEventListener('pointerdown', skip); el.addEventListener('wheel', skip, { passive: true }); el.addEventListener('touchmove', skip, { passive: true }); addEventListener('keydown', skip);
     el.addEventListener('animationend', e => { if (e.target === el && !el.classList.contains('out')) done(); });
   }
