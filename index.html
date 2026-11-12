@@ -1274,14 +1274,15 @@ addEventListener('hashchange', fromHash); fromHash();
   // Dragon path: the cards follow a figure-eight through depth (x = Ax sin t, z = Az sin 2t), so the body weaves in front of and behind itself.
   // A wave ripples along the body (y), and each card banks and turns along the path like a scale.
   let rot = 0, vel = .004, drag = null, visible = false, hov = false, lastT = performance.now(), Ax = 400, Az = 200, Ay = 40, wt = 0;
-  const isPhone = () => Math.min(screen.width, screen.height) < 600; let ringMode = isPhone(), R = 500;  
+  const useRing = () => true;  // ring layout everywhere; return false to bring back the dragon path
+  let ringMode = useRing(), R = 500;  
   const place = () => { if (ringMode) { ringEl.style.transform = `translateZ(${-R}px) rotateY(${rot}rad)`; return; } ringEl.style.transform = 'none'; cards.forEach(c => { const th = rot + c.i * STEP, ph = th * 3 - wt,
       x = Ax * Math.sin(th), z = Az * Math.sin(2 * th), y = Ay * Math.sin(ph),
       dx = Ax * Math.cos(th), dz = 2 * Az * Math.cos(2 * th), dy = 3 * Ay * Math.cos(ph),
       yaw = -1.0 * dx * dz / (dx * dx + dz * dz + 1), k = Ax * .5, bank = Math.atan(dy * dx / (dx * dx + k * k)) * .7;
       c.w.style.transform = `translate3d(${x.toFixed(1)}px,${y.toFixed(1)}px,${z.toFixed(1)}px) rotateY(${yaw.toFixed(3)}rad) rotateZ(${bank.toFixed(3)}rad)`;
       c.w.style.zIndex = Math.round(z + 1000); c.w.style.opacity = (.4 + .6 * (z + Az) / (2 * Az)).toFixed(2); }); };
-  const layout = () => { ringMode = isPhone(); host.style.height = ringMode ? 'clamp(230px,34vh,330px)' : '';
+  const layout = () => { ringMode = useRing(); host.style.height = ringMode ? 'clamp(230px,34vh,330px)' : '';
     if (ringMode) { const h = host.clientHeight, ch = h * .74, cw = ch * CW / CH; R = Math.max(cw * 1.2 / (2 * Math.tan(Math.PI / N)), cw * 1.6);
       host.style.setProperty('--cw', cw + 'px'); host.style.setProperty('--ch', ch + 'px'); host.style.perspective = Math.max(900, R * 2.3) + 'px';
       cards.forEach(c => { const th = c.i * STEP, tilt = Math.sin(th * 2) * 7; c.w.style.opacity = ''; c.w.style.zIndex = ''; c.w.style.transform = `rotateY(${th}rad) translateZ(${R}px) rotateZ(${tilt}deg)`; }); place(); return; }
@@ -1298,7 +1299,7 @@ addEventListener('hashchange', fromHash); fromHash();
   new IntersectionObserver(([e]) => { visible = e.isIntersecting; if (visible) bake(); }, { rootMargin: '300px' }).observe(host);
   const tick = now => { requestAnimationFrame(tick); if (!visible || $('#modal').classList.contains('open') || $('#intro') || document.hidden) { lastT = now; return; }
     const dt = Math.min(50, now - lastT); lastT = now;
-    if (!drag) { rot += vel * dt / 16; if (reduce) vel *= .9; else vel += ((hov ? 0 : ringMode ? .0035 : .004) - vel) * .03; }
+    if (!drag) { rot += vel * dt / 16; if (reduce) vel *= .9; else vel += ((ringMode ? .0035 : .004) - vel) * .03; }
     if (!reduce && !ringMode) wt += dt * .0016; place();
   };
   requestAnimationFrame(tick);
