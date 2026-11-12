@@ -131,9 +131,12 @@ section.s h2::before{content:"";display:inline-block;width:10px;height:10px;back
 button.open{margin-top:auto;cursor:pointer;background:none;border:1px solid var(--line);color:var(--txt);padding:9px 12px;border-radius:10px;font:inherit}
 button.open:hover{border-color:var(--acc);background:color-mix(in srgb,var(--acc) 10%,transparent)}
 #none{display:none;color:var(--mut);padding:30px 0}
-.tl{border-left:2px solid var(--line);margin-left:6px;padding-left:24px}
+.tl{border-left:2px solid var(--line);margin-left:6px;padding-left:24px;position:relative}
+.trv,.trl{position:absolute;pointer-events:none;opacity:0}
+.trv{left:-6px;top:0;width:10px;height:10px;border-radius:50%;background:#ef4444;box-shadow:0 0 0 4px rgba(239,68,68,.35),0 0 14px 3px rgba(239,68,68,.75);z-index:3}
+.trl{left:-2px;width:2px;background:linear-gradient(to top,transparent,#ef4444);transform-origin:50% 100%;z-index:2}
 details.job{margin-bottom:14px;position:relative;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 18px}
-details.job::before{content:"";position:absolute;left:-33px;top:22px;width:10px;height:10px;border-radius:50%;background:var(--acc)}
+details.job::before{content:"";position:absolute;left:-31px;top:22px;width:10px;height:10px;border-radius:50%;background:var(--acc)}
 details.job.now::before{background:#22c55e;box-shadow:0 0 0 4px rgba(34,197,94,.5),0 0 12px 2px rgba(34,197,94,.55)}
 @keyframes nowblink{0%,100%{opacity:1;box-shadow:0 0 0 4px rgba(34,197,94,.5),0 0 12px 2px rgba(34,197,94,.55)}50%{opacity:.25;box-shadow:0 0 0 7px rgba(34,197,94,0),0 0 0 0 rgba(34,197,94,0)}}
 details.job.now::before{animation:nowblink 1.4s ease-in-out infinite}
@@ -383,15 +386,22 @@ details.job.pop{animation:jobIn .6s cubic-bezier(.2,.8,.2,1) backwards}
 @keyframes shine{to{left:130%}}
 .stat{transition:transform .3s cubic-bezier(.2,.8,.2,1),border-color .25s}
 @media(hover:hover){.stat:hover{transform:translateY(-4px)}}
-#modal.open{animation:mFade .25s ease}
-#modal.open #m-box{animation:mRise .45s cubic-bezier(.2,.8,.2,1)}
+#modal.open{animation:mFade .3s ease;perspective:2200px}
 @keyframes mFade{from{opacity:0}}
-@keyframes mRise{from{opacity:0;transform:translateY(28px) scale(.98)}}
+#modal.open #m-box{animation:mFlip .85s cubic-bezier(.2,.75,.2,1) backwards;transform-origin:50% 50%}
+#modal.open #m-box.flip{animation:mFlip2 .6s cubic-bezier(.2,.75,.2,1) backwards}
+@keyframes mFlip2{0%{opacity:0;transform:rotateY(80deg) scale(.92)}40%{opacity:1}100%{opacity:1;transform:none}}
+@keyframes mFlip{0%{opacity:0;transform:rotateY(-95deg) scale(.88)}35%{opacity:1}100%{opacity:1;transform:none}}
+#m-body>*{animation:mItem .6s cubic-bezier(.2,.8,.2,1) backwards}
+#m-body>*:nth-child(1){animation-delay:.28s}#m-body>*:nth-child(2){animation-delay:.34s}#m-body>*:nth-child(3){animation-delay:.4s}#m-body>*:nth-child(4){animation-delay:.46s}#m-body>*:nth-child(5){animation-delay:.52s}#m-body>*:nth-child(n+6){animation-delay:.58s}
+@keyframes mItem{from{opacity:0;transform:translateY(22px)}}
 .btn.pri.ring{animation:ringPulse 1.6s ease-out 3}
 @keyframes ringPulse{0%{box-shadow:0 0 0 0 rgba(var(--glow),.55)}100%{box-shadow:0 0 0 16px rgba(var(--glow),0)}}
 }
 .card.more{display:none}
 .morewrap{text-align:center;margin-top:22px}.morewrap .btn{margin:0;min-height:44px;padding-left:28px;padding-right:28px}
+/* Reduce Motion: no circle, zoom or travel, only a short fade so opening a project still feels responsive. */
+@media (prefers-reduced-motion:reduce){#modal.open #m-box,#modal.open #m-box.flip{animation:none}#modal.open{animation:mFadeR .35s ease}#modal.open #m-body>*{animation:mFadeR .45s ease backwards}@keyframes mFadeR{from{opacity:0}}}
 </style>
 <script type="importmap">
 {"imports":{"three":"./vendor/three.module.min.js","three/addons/":"./vendor/addons/"}}
@@ -1108,6 +1118,10 @@ $$('[data-thumb]').forEach(el => tIO.observe(el));
 /* ---------- Modal: prev/next, wireframe, spin, deep links (#p-<id>) ---------- */
 const csec = (t, c) => (Array.isArray(c) ? c.length : c) ? `<div class="cs"><h4>${t}</h4>${Array.isArray(c) ? ul(c) : `<p>${esc(c)}</p>`}</div>` : '';
 let mv = null, cur = -1; const modal = $('#modal');
+// Where the project opening animation grows from: the last tap or click (screen centre for keyboard opens).
+const lastPt = { x: innerWidth / 2, y: innerHeight / 2 };
+addEventListener('pointerdown', e => { lastPt.x = e.clientX; lastPt.y = e.clientY; }, true);
+addEventListener('keydown', () => { lastPt.x = innerWidth / 2; lastPt.y = innerHeight / 2; }, true);
 function openProject(i) {
   i = (i + D.projects.length) % D.projects.length; cur = i; const p = D.projects[i];
   $('#m-body').innerHTML = `<div id="m-nav"><button id="b-prev" aria-label="Previous project">Prev</button><button id="b-next" aria-label="Next project">Next</button><button id="m-close">Close</button></div>
@@ -1121,7 +1135,7 @@ function openProject(i) {
   mv = makeViewer($('#m-view'), { placeholder: p.placeholder, model: p.model, interactive: true, spin: !reduce });
   $('#b-spin').classList.toggle('on', !reduce); $('#b-spin').setAttribute('aria-pressed', String(!reduce)); $('#b-wire').classList.remove('on');
   setupMedia(p);
-  { const wasOpen = modal.classList.contains('open'); modal.classList.add('open'); document.body.style.overflow = 'hidden';
+  { const wasOpen = modal.classList.contains('open'); if (wasOpen && !reduce) { const bx = $('#m-box'); bx.classList.remove('flip'); void bx.offsetWidth; bx.classList.add('flip'); bx.addEventListener('animationend', () => bx.classList.remove('flip'), { once: true }); } if (!wasOpen) { modal.style.setProperty('--ox', lastPt.x + 'px'); modal.style.setProperty('--oy', lastPt.y + 'px'); } modal.classList.add('open'); document.body.style.overflow = 'hidden';
     try { if (wasOpen) history.replaceState({ m: 1 }, '', '#p-' + p.id); else history.pushState({ m: 1 }, '', '#p-' + p.id); } catch (e) {} }
   $('#m-close').focus({ preventScroll: true });
 }
@@ -1240,6 +1254,22 @@ addEventListener('hashchange', fromHash); fromHash();
   requestAnimationFrame(tick);
   $('#theme').addEventListener('click', () => setTimeout(paintAll, 60));
 })();
+
+// Career timeline: a red dot travels from the oldest role up to the current one (green glow) once, then stops there and fades.
+try { const tl = document.querySelector('#experience .tl'); const jobs = tl ? [...tl.querySelectorAll('details.job')] : [], nowJ = tl && tl.querySelector('details.job.now'), oldJ = jobs[jobs.length - 1];
+  if (tl && nowJ && oldJ && nowJ !== oldJ && tl.animate && !(matchMedia('(prefers-reduced-motion:reduce)').matches)) {
+    const dot = document.createElement('i'), trail = document.createElement('i'); dot.className = 'trv'; trail.className = 'trl'; dot.setAttribute('aria-hidden', 'true'); trail.setAttribute('aria-hidden', 'true'); tl.append(trail, dot);
+    const yc = el => el.offsetTop + 22 + 5;
+    new IntersectionObserver(([en], o) => { if (!en.isIntersecting) return; o.disconnect(); setTimeout(() => {
+      const y0 = yc(oldJ), y1 = yc(nowJ), CLIMB = 12000, CYC = 13500, e = CLIMB / CYC, ease = 'cubic-bezier(.4,.05,.25,1)';
+      trail.style.top = y1 + 'px'; trail.style.height = Math.abs(y0 - y1) + 'px';
+      const opt = { duration: CYC, iterations: Infinity };
+      const a1 = dot.animate([{ transform: `translateY(${y0 - 5}px)`, opacity: 0, offset: 0 }, { transform: `translateY(${y0 - 5}px)`, opacity: 1, offset: .03, easing: ease }, { transform: `translateY(${y1 - 5}px)`, opacity: 1, offset: e }, { transform: `translateY(${y1 - 5}px)`, opacity: 0, offset: e + .03 }, { transform: `translateY(${y0 - 5}px)`, opacity: 0, offset: 1 }], opt);
+      const a2 = trail.animate([{ transform: 'scaleY(0)', opacity: .9, offset: 0 }, { transform: 'scaleY(0)', opacity: .9, offset: .03, easing: ease }, { transform: 'scaleY(1)', opacity: .9, offset: e }, { transform: 'scaleY(1)', opacity: 0, offset: e + .05 }, { transform: 'scaleY(0)', opacity: 0, offset: 1 }], opt);
+      // Runs continuously, but only burns frames while the timeline is on screen.
+      new IntersectionObserver(([en]) => { if (en.isIntersecting) { a1.play(); a2.play(); } else { a1.pause(); a2.pause(); } }).observe(tl);
+    }, 600); }, { threshold: 0, rootMargin: '0px 0px -30% 0px' }).observe(tl);
+  } } catch (e) {}
 </script>
 </body>
 </html>
