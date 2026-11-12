@@ -193,7 +193,7 @@ footer{padding-block:40px;color:var(--mut);font-size:14px;border-top:1px solid v
 #m-ctrl{bottom:max(12px,env(safe-area-inset-bottom,0px))}
 #m-strip{bottom:max(12px,env(safe-area-inset-bottom,0px))}
 #m-media{bottom:calc(max(12px,env(safe-area-inset-bottom,0px)) + 100px)}}
-@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}details.job.now::before{animation:none}.pill.live::before{animation:none}.typed::after{animation:none}}
+@media not all{html{scroll-behavior:auto}details.job.now::before{animation:none}.pill.live::before{animation:none}.typed::after{animation:none}}
 /* Touch feedback: every tab, chip and button glows while pressed, ripples from the touch point, then fades */
 html{-webkit-tap-highlight-color:transparent}
 nav a.l,.chip,.btn,button,.sk,summary{position:relative;overflow:hidden;touch-action:manipulation}
@@ -209,7 +209,7 @@ summary.tap{border-radius:8px;background:color-mix(in srgb,var(--acc) 12%,transp
 @keyframes tapfade{from{box-shadow:0 0 0 2px rgba(var(--glow),.9),0 0 18px 2px rgba(var(--glow),.55)}to{box-shadow:0 0 0 0 rgba(var(--glow),0),0 0 0 0 rgba(var(--glow),0)}}
 .ripple{position:absolute;border-radius:50%;pointer-events:none;z-index:3;background:radial-gradient(circle,rgba(var(--glow),.6),rgba(var(--glow),0) 70%);transform:scale(.2);opacity:1;animation:rip .6s ease-out forwards}
 @keyframes rip{to{transform:scale(1);opacity:0}}
-@media(prefers-reduced-motion:reduce){.ripple,.tapfade{animation:none}.ripple{display:none}}
+@media not all{.ripple,.tapfade{animation:none}.ripple{display:none}}
 
 /* "All" drop-down: pick any project by title */
 .chipgroup{position:relative;display:inline-flex}
@@ -363,7 +363,7 @@ html.hero-in #hero .hero-text>*,html.hero-in #hero .stat{animation:heroUp .8s cu
 :root[data-theme="studio"] .card h3,:root[data-theme="studio"] details.job summary{text-transform:uppercase;letter-spacing:-.01em;font-weight:500}
 
 /* Selected-work reel */
-#reel-view{position:relative;transform-style:flat;height:clamp(230px,34vh,330px);margin:0 -4px 6px;border-radius:var(--r);overflow:hidden;user-select:none;-webkit-user-select:none}
+#reel-view{position:relative;transform-style:flat;height:clamp(270px,42vh,390px);margin:0 -4px 6px;border-radius:var(--r);overflow:hidden;user-select:none;-webkit-user-select:none}
 #reel-view .reel-ring{position:absolute;left:50%;top:50%;width:0;height:0;transform-style:preserve-3d;will-change:transform}
 #reel-view .rw{position:absolute;left:calc(var(--cw)/-2);top:calc(var(--ch)/-2);width:var(--cw);height:var(--ch);backface-visibility:hidden;-webkit-backface-visibility:hidden}
 #reel-view canvas.rc{width:100%;height:100%;display:block;border-radius:6px;cursor:pointer;transition:filter .2s,transform .25s cubic-bezier(.2,.8,.2,1)}
@@ -375,7 +375,7 @@ html.hero-in #hero .hero-text>*,html.hero-in #hero .stat{animation:heroUp .8s cu
 :root[data-theme="studio"] #reel-go{border-radius:2px;text-transform:uppercase;font-family:var(--f-mono);font-weight:500;font-size:12px;letter-spacing:.08em}
 
 /* Motion: once-only, transform/opacity only, off under Reduce Motion */
-@media (prefers-reduced-motion:no-preference){
+@media all{
 html.js section.s h2{position:relative}
 html.js section.s h2::after{content:"";position:absolute;left:0;bottom:-10px;height:3px;width:0;background:var(--acc);border-radius:3px;transition:width .8s .25s cubic-bezier(.2,.8,.2,1)}
 html.js section.s h2.in::after{width:56px}
@@ -410,8 +410,8 @@ details.job.pop{animation:jobIn .6s cubic-bezier(.2,.8,.2,1) backwards}
 .card.more{display:none}
 .morewrap{text-align:center;margin-top:22px}.morewrap .btn{margin:0;min-height:44px;padding-left:28px;padding-right:28px}
 /* Reduce Motion: no circle, zoom or travel, only a short fade so opening a project still feels responsive. */
-@media (prefers-reduced-motion:reduce){#modal.open #m-box,#modal.open #m-box.flip{animation:none}#modal.open{animation:mFadeR .35s ease}#modal.open #m-body>*{animation:mFadeR .45s ease backwards}@keyframes mFadeR{from{opacity:0}}}
-@media (prefers-reduced-motion:no-preference){
+@media not all{#modal.open #m-box,#modal.open #m-box.flip{animation:none}#modal.open{animation:mFadeR .35s ease}#modal.open #m-body>*{animation:mFadeR .45s ease backwards}@keyframes mFadeR{from{opacity:0}}}
+@media all{
 #modal.closing{pointer-events:none;animation:crtBg .76s ease-in forwards !important}
 #modal.closing #m-box{animation:crtOff .72s cubic-bezier(.65,0,.35,1) forwards !important;transform-origin:50% 50%}
 @keyframes crtBg{0%,60%{opacity:1}100%{opacity:0}}
@@ -469,7 +469,7 @@ const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAl
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const ul = a => a && a.length ? `<ul>${a.map(x => `<li>${esc(x)}</li>`).join('')}</ul>` : '';
 const pills = a => (a || []).map(x => `<span class="pill">${esc(x)}</span>`).join('');
-const reduce = matchMedia('(prefers-reduced-motion:reduce)').matches;
+const reduce = false;
 const store = { get(k){ try{ return localStorage.getItem(k) }catch(e){ return null } }, set(k,v){ try{ localStorage.setItem(k,v) }catch(e){} } };
 const setHash = h => { try { history.replaceState(null, '', h || (location.pathname + location.search)); } catch (e) {} };
 
@@ -553,7 +553,7 @@ document.body.insertAdjacentHTML('beforeend', '<button id="totop" type="button" 
   tt.onclick = () => scrollTo({ top: 0, behavior: reduce ? 'auto' : 'smooth' }); }
 // Scroll reveal: sections rise in once as they enter the viewport (skipped under Reduce Motion or without IntersectionObserver).
 try {
-  if ('IntersectionObserver' in window && !(window.matchMedia && matchMedia('(prefers-reduced-motion:reduce)').matches)) {
+  if ('IntersectionObserver' in window && !(window.matchMedia && false)) {
     const items = $$('section.s .wrap > *'); document.documentElement.classList.add('js'); items.forEach(e => e.classList.add('rv'));
     const rio = new IntersectionObserver(es => es.forEach(en => { if (en.isIntersecting) { en.target.classList.add('in'); rio.unobserve(en.target); } }), { threshold: 0.06, rootMargin: '0px 0px -6% 0px' });
     items.forEach(e => rio.observe(e));
@@ -566,11 +566,12 @@ try {
 } catch (e) { document.documentElement.classList.remove('js'); }
 // Opening animation (typographic reveal + split). Once per browser session, skipped for deep links and Reduce Motion.
 try {
-  let seen = false; try { seen = sessionStorage.getItem('intro1') === '1'; } catch (e) {}
-  const deep = location.hash && location.hash !== '#hero' && location.hash !== '#';
-  const rm = window.matchMedia && matchMedia('(prefers-reduced-motion:reduce)').matches;
+  const INTRO_ONCE = false; let seen = false; try { seen = INTRO_ONCE && sessionStorage.getItem('intro1') === '1'; } catch (e) {}
+  const deep = /^#p-/.test(location.hash);
+  const rm = window.matchMedia && false;
   const force = /[?&]intro\b/.test(location.search);
-  if ((force || !seen) && !deep) {
+  const playIntro = () => {  // plays on every fresh load (set INTRO_ONCE to true to play once per session)
+    document.getElementById('intro')?.remove();
     try { sessionStorage.setItem('intro1', '1'); } catch (e) {}
     const fold = () => '<div class="dv"><div class="dp l"></div></div>'; let n = 0; const total = P.name.replace(/ /g, '').length; const words = P.name.split(' ').map(w => `<span class="iwm">${Array.from(w).map(c => `<span class="ich${n + 1 === total ? ' last' : ''}" style="--n:${n++}">${esc(c)}</span>`).join('')}</span>`).join('');
     const el = document.createElement('div'); el.id = 'intro'; if (rm) el.classList.add('calm'); el.setAttribute('aria-hidden', 'true');
@@ -586,7 +587,10 @@ try {
     const t = setTimeout(done, rm ? 1700 : 5400);
     el.addEventListener('pointerdown', skip); el.addEventListener('wheel', skip, { passive: true }); el.addEventListener('touchmove', skip, { passive: true }); addEventListener('keydown', skip);
     el.addEventListener('animationend', e => { if (e.target === el && !el.classList.contains('out')) done(); });
-  }
+  };
+  window.playIntro = playIntro;
+  // Wait until the page is actually on screen (a preview pane can load it hidden), then play.
+  if (!deep && !seen) { if (document.hidden) { const go = () => { if (!document.hidden) { document.removeEventListener('visibilitychange', go); playIntro(); } }; document.addEventListener('visibilitychange', go); } else playIntro(); }
 } catch (e) {}
 const cf = $('#cform'); if (cf) cf.onsubmit = async e => { e.preventDefault(); const st = $('#cstat'), fd = new FormData(cf); if (fd.get('_gotcha')) return; st.textContent = 'Sending...';
   try { const r = await fetch(P.formEndpoint, { method: 'POST', body: fd, headers: { Accept: 'application/json' } }); if (r.ok) { st.textContent = 'Sent. Thank you, I will reply soon.'; cf.reset(); } else throw 0; }
@@ -615,7 +619,7 @@ const spy = () => { if (Date.now() < lockUntil) return;
   for (const s of spySecs) if (s.getBoundingClientRect().top <= y) cur = s.id;
   if (innerHeight + scrollY >= document.documentElement.scrollHeight - 4) cur = spySecs[spySecs.length - 1].id;
   setActive(cur); };
-$$('nav a.brand').forEach(a => a.addEventListener('click', () => { setActive('hero'); lockUntil = Date.now() + 1100; setTimeout(spy, 1200); }));
+$$('nav a.brand').forEach(a => a.addEventListener('click', () => { if (window.playIntro && scrollY < 200) playIntro(); setActive('hero'); lockUntil = Date.now() + 1100; setTimeout(spy, 1200); }));
 links.forEach(a => a.addEventListener('click', () => { setActive(a.getAttribute('href').slice(1)); if (a.closest('#dock')) { $$('#dock a').forEach(x => x.classList.remove('peek')); a.classList.add('peek'); clearTimeout(peekT); peekT = setTimeout(() => a.classList.remove('peek'), 1400); } lockUntil = Date.now() + 1100; setTimeout(spy, 1200); }));
 let spyQ = false; const spyRaf = () => { if (spyQ) return; spyQ = true; requestAnimationFrame(() => { spyQ = false; spy(); }); };
 const dockEl = $('#dock'); let dockT; addEventListener('scroll', () => { dockEl.classList.add('scrolling'); clearTimeout(dockT); dockT = setTimeout(() => dockEl.classList.remove('scrolling'), 220); }, { passive: true });
@@ -1212,7 +1216,7 @@ addEventListener('hashchange', fromHash); fromHash();
   document.addEventListener('pointerdown', e => {
     const el = e.target.closest(SEL); if (!el) return;
     release(); held = el; el.classList.remove('tapfade'); el.classList.add('tap');
-    if (matchMedia('(prefers-reduced-motion:reduce)').matches) return;
+    if (false) return;
     const b = el.getBoundingClientRect(), size = Math.min(Math.max(b.width, b.height) * 1.8, 280), r = document.createElement('span');
     r.className = 'ripple'; r.style.cssText = `width:${size}px;height:${size}px;left:${e.clientX - b.left - size / 2}px;top:${e.clientY - b.top - size / 2}px`;
     el.appendChild(r); r.addEventListener('animationend', () => r.remove(), { once: true });
@@ -1263,23 +1267,30 @@ addEventListener('hashchange', fromHash); fromHash();
         tr.render(sc, cm); const im = document.createElement('canvas'); im.width = CW - 28; im.height = 276; im.getContext('2d').drawImage(tr.domElement, 0, 0); c.img = im; paint(c); } catch (e) {}
       sc.remove(hold); setTimeout(step, 90); };
     step(); };
-  // Geometry follows the box size: card height 74% of the stage, radius so neighbours just clear each other.
-  let rot = 0, vel = reduce ? 0 : .0035, drag = null, visible = false, hov = false, lastT = performance.now(), R = 500;
-  const layout = () => { const h = host.clientHeight, ch = h * .74, cw = ch * CW / CH; R = Math.max(cw * 1.2 / (2 * Math.tan(Math.PI / N)), cw * 1.6);
-    host.style.setProperty('--cw', cw + 'px'); host.style.setProperty('--ch', ch + 'px'); host.style.perspective = Math.max(900, R * 2.3) + 'px';
-    cards.forEach(c => { const th = c.i * STEP, tilt = Math.sin(th * 2) * 7; c.w.style.transform = `rotateY(${th}rad) translateZ(${R}px) rotateZ(${tilt}deg)`; }); };
+  // Dragon path: the cards follow a figure-eight through depth (x = Ax sin t, z = Az sin 2t), so the body weaves in front of and behind itself.
+  // A wave ripples along the body (y), and each card banks and turns along the path like a scale.
+  let rot = 0, vel = reduce ? 0 : .004, drag = null, visible = false, hov = false, lastT = performance.now(), Ax = 400, Az = 200, Ay = 40, wt = 0;
+  const place = () => { cards.forEach(c => { const th = rot + c.i * STEP, ph = th * 3 - wt,
+      x = Ax * Math.sin(th), z = Az * Math.sin(2 * th), y = Ay * Math.sin(ph),
+      dx = Ax * Math.cos(th), dz = 2 * Az * Math.cos(2 * th), dy = 3 * Ay * Math.cos(ph),
+      yaw = -1.0 * dx * dz / (dx * dx + dz * dz + 1), k = Ax * .5, bank = Math.atan(dy * dx / (dx * dx + k * k)) * .7;
+      c.w.style.transform = `translate3d(${x.toFixed(1)}px,${y.toFixed(1)}px,${z.toFixed(1)}px) rotateY(${yaw.toFixed(3)}rad) rotateZ(${bank.toFixed(3)}rad)`;
+      c.w.style.zIndex = Math.round(z + 1000); c.w.style.opacity = (.4 + .6 * (z + Az) / (2 * Az)).toFixed(2); }); };
+  const layout = () => { const h = host.clientHeight, w = host.clientWidth, ch = Math.min(h * .52, w * .4), cw = ch * CW / CH;
+    Ax = Math.max(cw * 1.2, Math.min(w * .34, 520)); Az = Math.min(Ax * .5, 300); Ay = h * .1;
+    host.style.setProperty('--cw', cw + 'px'); host.style.setProperty('--ch', ch + 'px'); host.style.perspective = Math.max(900, Az * 4.2) + 'px'; place(); };
   new ResizeObserver(layout).observe(host); layout();
     host.style.touchAction = 'pan-y'; host.style.cursor = 'grab';
   host.addEventListener('pointerdown', e => { drag = { lx: e.clientX, moved: 0, id: e.pointerId, t: e.target }; vel = 0; });
-  addEventListener('pointermove', e => { if (!drag || e.pointerId !== drag.id) return; const dx = e.clientX - drag.lx; drag.lx = e.clientX; drag.moved += Math.abs(dx); if (drag.moved > 6) host.style.cursor = 'grabbing'; rot += dx * .006; vel = dx * .006; });
-  addEventListener('pointerup', e => { if (!drag || e.pointerId !== drag.id) return; const d = drag; drag = null; host.style.cursor = 'grab'; if (d.moved <= 6) { const c = d.t.closest && d.t.closest('canvas.rc'); if (c) openProject(+c.dataset.i); } else vel = reduce ? 0 : Math.max(-.05, Math.min(.05, vel)); });
+  addEventListener('pointermove', e => { if (!drag || e.pointerId !== drag.id) return; const dx = e.clientX - drag.lx; drag.lx = e.clientX; drag.moved += Math.abs(dx); if (drag.moved > 6) host.style.cursor = 'grabbing'; rot += dx / Ax; vel = dx / Ax; });
+  addEventListener('pointerup', e => { if (!drag || e.pointerId !== drag.id) return; const d = drag; drag = null; host.style.cursor = 'grab'; if (d.moved <= 6) { const c = d.t.closest && d.t.closest('canvas.rc'); if (c) openProject(+c.dataset.i); } else vel = reduce ? 0 : Math.max(-.06, Math.min(.06, vel)); });
   addEventListener('pointercancel', () => { drag = null; });
   host.addEventListener('pointerenter', () => hov = true); host.addEventListener('pointerleave', () => hov = false);
   new IntersectionObserver(([e]) => { visible = e.isIntersecting; if (visible) bake(); }, { rootMargin: '300px' }).observe(host);
   const tick = now => { requestAnimationFrame(tick); if (!visible || $('#modal').classList.contains('open') || $('#intro') || document.hidden) { lastT = now; return; }
     const dt = Math.min(50, now - lastT); lastT = now;
-    if (!drag) { rot += vel * dt / 16; if (reduce) vel *= .9; else vel += ((hov ? 0 : .0035) - vel) * .03; }
-    ringEl.style.transform = `translateZ(${-R}px) rotateY(${rot}rad)`;
+    if (!drag) { rot += vel * dt / 16; if (reduce) vel *= .9; else vel += ((hov ? 0 : .004) - vel) * .03; }
+    if (!reduce) wt += dt * .0016; place();
   };
   requestAnimationFrame(tick);
   $('#theme').addEventListener('click', () => setTimeout(paintAll, 60));
@@ -1287,7 +1298,7 @@ addEventListener('hashchange', fromHash); fromHash();
 
 // Career timeline: a red dot travels from the oldest role up to the current one (green glow) once, then stops there and fades.
 try { const tl = document.querySelector('#experience .tl'); const jobs = tl ? [...tl.querySelectorAll('details.job')] : [], nowJ = tl && tl.querySelector('details.job.now'), oldJ = jobs[jobs.length - 1];
-  if (tl && nowJ && oldJ && nowJ !== oldJ && tl.animate && !(matchMedia('(prefers-reduced-motion:reduce)').matches)) {
+  if (tl && nowJ && oldJ && nowJ !== oldJ && tl.animate && !(false)) {
     const dot = document.createElement('i'), trail = document.createElement('i'); dot.className = 'trv'; trail.className = 'trl'; dot.setAttribute('aria-hidden', 'true'); trail.setAttribute('aria-hidden', 'true'); tl.append(trail, dot);
     const yc = el => el.offsetTop + 22 + 5;
     new IntersectionObserver(([en], o) => { if (!en.isIntersecting) return; o.disconnect(); setTimeout(() => {
