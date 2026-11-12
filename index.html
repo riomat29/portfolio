@@ -568,6 +568,10 @@ try {
 try {
   const INTRO_ONCE = false; let seen = false; try { seen = INTRO_ONCE && sessionStorage.getItem('intro1') === '1'; } catch (e) {}
   const deep = /^#p-/.test(location.hash);
+  // A refresh always lands on the hero (unless it is a direct project link): no restored scroll, no leftover #section.
+  const toHero = () => { try { if (!deep) { scrollTo(0, 0); if (location.hash) history.replaceState(null, '', location.pathname + location.search); } } catch (e) {} };
+  try { if ('scrollRestoration' in history) history.scrollRestoration = 'manual'; } catch (e) {}
+  toHero(); addEventListener('load', toHero);
   const rm = window.matchMedia && false;
   const force = /[?&]intro\b/.test(location.search);
   const playIntro = () => {  // plays on every fresh load (set INTRO_ONCE to true to play once per session)
@@ -579,7 +583,7 @@ try {
     document.body.appendChild(el);
     if (!rm) document.documentElement.classList.add('introing');
     const root = document.documentElement; let revealed = false;
-    const reveal = () => { if (revealed) return; revealed = true; root.classList.remove('introing'); if (!rm) { root.classList.add('hero-in'); setTimeout(() => root.classList.remove('hero-in'), 2000); } };
+    const reveal = () => { if (revealed) return; revealed = true; toHero(); root.classList.remove('introing'); if (!rm) { root.classList.add('hero-in'); setTimeout(() => root.classList.remove('hero-in'), 2000); } };
     setTimeout(reveal, rm ? 0 : 4450);
     if (!rm) { const cnt = el.querySelector('.i-cnt'), t0 = performance.now(); (function f(n) { const q = Math.min(1, (n - t0) / 4100); cnt.textContent = String(Math.round(q * q * (3 - 2 * q) * 120)).padStart(3, '0'); if (q < 1 && el.isConnected) requestAnimationFrame(f); })(t0); }
     const done = () => { reveal(); clearTimeout(t); el.remove(); removeEventListener('keydown', skip); };
