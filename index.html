@@ -355,8 +355,11 @@ html.hero-in #hero .hero-text>*,html.hero-in #hero .stat{animation:heroUp .8s cu
 :root[data-theme="studio"] .card h3,:root[data-theme="studio"] details.job summary{text-transform:uppercase;letter-spacing:-.01em;font-weight:500}
 
 /* Selected-work reel */
-#reel-view{position:relative;height:clamp(230px,34vh,330px);margin:0 -4px 6px;border-radius:var(--r);overflow:hidden;user-select:none;-webkit-user-select:none}
-#reel-view canvas{width:100%;height:100%;display:block;outline:0}
+#reel-view{position:relative;transform-style:flat;height:clamp(230px,34vh,330px);margin:0 -4px 6px;border-radius:var(--r);overflow:hidden;user-select:none;-webkit-user-select:none}
+#reel-view .reel-ring{position:absolute;left:50%;top:50%;width:0;height:0;transform-style:preserve-3d;will-change:transform}
+#reel-view .rw{position:absolute;left:calc(var(--cw)/-2);top:calc(var(--ch)/-2);width:var(--cw);height:var(--ch);backface-visibility:hidden;-webkit-backface-visibility:hidden}
+#reel-view canvas.rc{width:100%;height:100%;display:block;border-radius:6px;cursor:pointer;transition:filter .2s,transform .25s cubic-bezier(.2,.8,.2,1)}
+@media(hover:hover){#reel-view canvas.rc:hover{filter:brightness(1.12);transform:scale(1.04)}}
 .reel-bar{margin-bottom:18px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-top:12px}
 .reel-hint{font-family:var(--f-mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--mut)}
 #reel-go{font:inherit;font-weight:600;color:var(--txt);background:none;border:1px solid var(--line);border-radius:999px;padding:10px 16px;min-height:44px;cursor:pointer;max-width:100%}
@@ -1084,7 +1087,11 @@ function makeViewer(container, { model, placeholder, interactive = false, spin =
 const thumbViewers = new Map(), thumbQueue = []; let thumbBusy = false;
 // Building a viewer (WebGL context + geometry) is the heavy step, so do it one at a time between frames rather than in the middle of a scroll.
 const pumpThumbs = () => { if (thumbBusy) return; const el = thumbQueue.shift(); if (!el) return; thumbBusy = true;
-  setTimeout(() => { const p = D.projects[+el.dataset.thumb]; if (!thumbViewers.has(el) && el.dataset.want === '1') thumbViewers.set(el, makeViewer(el, { placeholder: p.placeholder, model: p.model })); thumbBusy = false; pumpThumbs(); }, 120); };
+  setTimeout(() => { const p = D.projects[+el.dataset.thumb];
+    // Browsers allow only ~16 WebGL contexts and silently kill the oldest (the project reel!), so keep thumbnail viewers to 10 and evict the one furthest from the viewport.
+    if (thumbViewers.size >= (matchMedia('(pointer:coarse)').matches ? 6 : 10)) { let far = null, fd = innerHeight / 2 + 500; thumbViewers.forEach((v, e2) => { const r = e2.getBoundingClientRect(), d = Math.abs(r.top + r.height / 2 - innerHeight / 2); if (d > fd) { fd = d; far = e2; } });
+      if (far) { thumbViewers.get(far).dispose(); thumbViewers.delete(far); } else { thumbBusy = false; if (el.dataset.want === '1') setTimeout(() => { thumbQueue.push(el); pumpThumbs(); }, 500); return; } }
+    if (!thumbViewers.has(el) && el.dataset.want === '1') thumbViewers.set(el, makeViewer(el, { placeholder: p.placeholder, model: p.model })); thumbBusy = false; pumpThumbs(); }, 120); };
 const tIO = new IntersectionObserver(es => es.forEach(e => { const el = e.target, p = D.projects[+el.dataset.thumb]; if (p.image) return;
   if (e.isIntersecting) { el.dataset.want = '1'; if (!thumbViewers.has(el) && !thumbQueue.includes(el)) { thumbQueue.push(el); pumpThumbs(); } } }), { rootMargin: '500px' });
 // Release a card's viewer only once it is well away (browsers cap WebGL contexts, about 16), so cards near the viewport are never rebuilt mid-scroll.
@@ -1180,19 +1187,14 @@ addEventListener('hashchange', fromHash); fromHash();
   addEventListener('keydown', e => { if (e.key === 'Escape' && !menu.hidden) close(true); });
 })();
 
-// ---- Selected-work reel: a ring of project cards you can drag, spin and tap to open. One WebGL context, 2D-canvas textures, paused off-screen. ----
+// ---- Selected-work reel: a ring of project cards (CSS 3D, no WebGL context to lose) you can drag, spin and tap to open. ----
 (() => {
   const host = $('#reel-view'); if (!host) return;
-  const N = D.projects.length, CW = 360, CH = 450, R = 6.6;
+  const N = D.projects.length, CW = 360, CH = 450, STEP = Math.PI * 2 / N;
   const css = n => getComputedStyle(root).getPropertyValue(n).trim();
-  const renderer = newRenderer(1.5); if (!renderer) { host.classList.add('nowebgl'); return; }
-  host.prepend(renderer.domElement); renderer.domElement.setAttribute('aria-hidden', 'true');
-  const scene = new THREE.Scene(), cam = new THREE.PerspectiveCamera(32, 1, .1, 100), ring = new THREE.Group(); scene.add(ring);
-  const cards = D.projects.map((p, i) => { const cv = document.createElement('canvas'); cv.width = CW; cv.height = CH;
-    const tex = new THREE.CanvasTexture(cv); tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 4;
-    const m = new THREE.Mesh(new THREE.PlaneGeometry(2.3, 2.875), new THREE.MeshBasicMaterial({ map: tex, toneMapped: false }));
-    const th = i / N * Math.PI * 2; m.position.set(Math.sin(th) * R, Math.sin(th * 2) * .3, Math.cos(th) * R); m.rotation.y = th; m.rotateZ(Math.sin(th * 2) * .13); m.rotateX(-.04);
-    m.userData = { i, base: 1, img: null }; ring.add(m); return { cv, tex, m, p, i }; });
+  const ringEl = document.createElement('div'); ringEl.className = 'reel-ring'; host.appendChild(ringEl);
+  const cards = D.projects.map((p, i) => { const cv = document.createElement('canvas'); cv.width = CW; cv.height = CH; cv.className = 'rc'; cv.dataset.i = i; cv.setAttribute('role', 'img'); cv.setAttribute('aria-label', p.title);
+    const w = document.createElement('div'); w.className = 'rw'; w.appendChild(cv); ringEl.appendChild(w); return { cv, w, p, i, img: null }; });
   const wrapTxt = (g, t, x, y, w, lh, max) => { const ws = t.split(' '), L = []; let line = ''; for (const w1 of ws) { const test = line ? line + ' ' + w1 : w1; if (g.measureText(test).width > w && line) { L.push(line); line = w1; } else line = test; } L.push(line); if (L.length > max) { L.length = max; let l = L[max - 1]; while (l && g.measureText(l + '…').width > w) l = l.slice(0, -1); L[max - 1] = l.trimEnd() + '…'; } L.forEach((l, k) => g.fillText(l, x, y + k * lh)); };
   const paint = c => { const g = c.cv.getContext('2d'), mono = css('--f-mono') || 'monospace', body = css('--f-body') || 'Inter, system-ui, sans-serif', studio = root.dataset.theme === 'studio';
     g.clearRect(0, 0, CW, CH); g.fillStyle = css('--panel') || '#292926'; g.fillRect(0, 0, CW, CH);
@@ -1200,10 +1202,10 @@ addEventListener('hashchange', fromHash); fromHash();
     if (c.img) { const s = Math.min((CW - 28) / c.img.width, 276 / c.img.height); const w = c.img.width * s, h = c.img.height * s; g.drawImage(c.img, 14 + (CW - 28 - w) / 2, 56 + (276 - h) / 2, w, h); }
     g.fillStyle = css('--mut') || '#999'; g.font = '500 15px ' + mono; g.textBaseline = 'alphabetic'; g.fillText('[' + String(c.i + 1).padStart(2, '0') + ']', 16, 36); g.textAlign = 'right'; g.fillText((c.p.tag.split('·')[0] || '').trim().toUpperCase().slice(0, 26), CW - 16, 36); g.textAlign = 'left';
     g.fillStyle = css('--txt') || '#eee'; g.font = (studio ? '500 24px ' + mono : '700 24px ' + body); wrapTxt(g, studio ? c.p.title.toUpperCase() : c.p.title, 16, 372, CW - 32, 29, 2);
-    g.strokeStyle = css('--line') || '#444'; g.lineWidth = 3; g.strokeRect(1.5, 1.5, CW - 3, CH - 3); c.tex.needsUpdate = true; };
+    g.strokeStyle = css('--line') || '#444'; g.lineWidth = 3; g.strokeRect(1.5, 1.5, CW - 3, CH - 3); };
   const paintAll = () => cards.forEach(paint);
   paintAll(); document.fonts && document.fonts.ready.then(paintAll);
-  // Render each project's 3D model once into its card, one per slice so scrolling never stalls.
+  // Bake each project's 3D model once into its card with a short-lived renderer, one per slice. If WebGL is unavailable the card just keeps its title face.
   let started = false; const bake = () => { if (started) return; started = true; let k = 0;
     const tr = newRenderer(1); if (!tr) return; tr.setSize(CW - 28, 276, false); const sc = new THREE.Scene(), cm = new THREE.PerspectiveCamera(40, (CW - 28) / 276, .1, 200); addEnv(tr, sc);
     sc.add(new THREE.HemisphereLight(0xffffff, 0x223344, 1.2)); const sun = new THREE.DirectionalLight(0xffffff, 2.2); sun.position.set(5, 8, 5); sc.add(sun);
@@ -1212,29 +1214,26 @@ addEventListener('hashchange', fromHash); fromHash();
         tr.render(sc, cm); const im = document.createElement('canvas'); im.width = CW - 28; im.height = 276; im.getContext('2d').drawImage(tr.domElement, 0, 0); c.img = im; paint(c); } catch (e) {}
       sc.remove(hold); setTimeout(step, 90); };
     step(); };
-  // Interaction: drag to spin with inertia, tap or click a card to open it.
-  let rot = 0, vel = reduce ? 0 : .0035, drag = null, hov = -1, visible = false, lastT = performance.now();
-  const ray = new THREE.Raycaster(), mouse = new THREE.Vector2();
-  const pick = e => { const r = renderer.domElement.getBoundingClientRect(); mouse.set((e.clientX - r.left) / r.width * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1); ray.setFromCamera(mouse, cam); const h = ray.intersectObjects(cards.map(c => c.m), false)[0]; return h ? h.object.userData.i : -1; };
-  const el = renderer.domElement; el.style.touchAction = 'pan-y'; el.style.cursor = 'grab';
-  el.addEventListener('pointerdown', e => { drag = { x: e.clientX, y: e.clientY, lx: e.clientX, moved: 0, id: e.pointerId }; vel = 0; });
-  addEventListener('pointermove', e => { if (drag && e.pointerId === drag.id) { const dx = e.clientX - drag.lx; drag.lx = e.clientX; drag.moved += Math.abs(dx); if (drag.moved > 6) { try { el.setPointerCapture(e.pointerId); } catch (x) {} el.style.cursor = 'grabbing'; } rot += dx * .006; vel = dx * .006; }
-    else if (e.target === el) { const h = pick(e); if (h !== hov) { hov = h; el.style.cursor = h >= 0 ? 'pointer' : 'grab'; } } });
-  const end = e => { if (!drag || e.pointerId !== drag.id) return; const wasTap = drag.moved <= 6; drag = null; el.style.cursor = hov >= 0 ? 'pointer' : 'grab'; if (wasTap) { const h = pick(e); if (h >= 0) openProject(h); } else if (reduce) vel = 0; else vel = Math.max(-.05, Math.min(.05, vel)); };
-  addEventListener('pointerup', end); addEventListener('pointercancel', () => { drag = null; });
-  el.addEventListener('wheel', () => {}, { passive: true });
+  // Geometry follows the box size: card height 74% of the stage, radius so neighbours just clear each other.
+  let rot = 0, vel = reduce ? 0 : .0035, drag = null, visible = false, hov = false, lastT = performance.now(), R = 500;
+  const layout = () => { const h = host.clientHeight, ch = h * .74, cw = ch * CW / CH; R = Math.max(cw * 1.2 / (2 * Math.tan(Math.PI / N)), cw * 1.6);
+    host.style.setProperty('--cw', cw + 'px'); host.style.setProperty('--ch', ch + 'px'); host.style.perspective = Math.max(900, R * 2.3) + 'px';
+    cards.forEach(c => { const th = c.i * STEP, tilt = Math.sin(th * 2) * 7; c.w.style.transform = `rotateY(${th}rad) translateZ(${R}px) rotateZ(${tilt}deg)`; }); };
+  new ResizeObserver(layout).observe(host); layout();
   const lab = $('#reel-lab'), go = $('#reel-go'); let labI = -1;
-  const frontIdx = () => { let b = 0, bz = -9; ring.children.forEach(m => { const z = m.getWorldPosition(new THREE.Vector3()).z; if (z > bz) { bz = z; b = m.userData.i; } }); return b; };
-  const resize = () => { const w = host.clientWidth, h = host.clientHeight; renderer.setSize(w, h, false); cam.aspect = w / h; const d = 13.6 / Math.min(1, cam.aspect * .95 + .1); cam.position.set(0, 1.1, d); cam.lookAt(0, -.75, 0); cam.updateProjectionMatrix(); };
-  new ResizeObserver(resize).observe(host); resize();
+  const front = () => { const k = Math.round(-rot / STEP); return ((k % N) + N) % N; };
+  host.style.touchAction = 'pan-y'; host.style.cursor = 'grab';
+  host.addEventListener('pointerdown', e => { drag = { lx: e.clientX, moved: 0, id: e.pointerId, t: e.target }; vel = 0; });
+  addEventListener('pointermove', e => { if (!drag || e.pointerId !== drag.id) return; const dx = e.clientX - drag.lx; drag.lx = e.clientX; drag.moved += Math.abs(dx); if (drag.moved > 6) host.style.cursor = 'grabbing'; rot += dx * .006; vel = dx * .006; });
+  addEventListener('pointerup', e => { if (!drag || e.pointerId !== drag.id) return; const d = drag; drag = null; host.style.cursor = 'grab'; if (d.moved <= 6) { const c = d.t.closest && d.t.closest('canvas.rc'); if (c) openProject(+c.dataset.i); } else vel = reduce ? 0 : Math.max(-.05, Math.min(.05, vel)); });
+  addEventListener('pointercancel', () => { drag = null; });
+  host.addEventListener('pointerenter', () => hov = true); host.addEventListener('pointerleave', () => hov = false);
   new IntersectionObserver(([e]) => { visible = e.isIntersecting; if (visible) bake(); }, { rootMargin: '300px' }).observe(host);
   const tick = now => { requestAnimationFrame(tick); if (!visible || $('#modal').classList.contains('open') || $('#intro') || document.hidden) { lastT = now; return; }
     const dt = Math.min(50, now - lastT); lastT = now;
-    if (!drag) { if (!reduce) { rot += vel * dt / 16; vel += ((hov >= 0 ? 0 : .0035) - vel) * .03; } else { rot += vel * dt / 16; vel *= .9; } }
-    ring.rotation.y = rot;
-    cards.forEach(c => { const t = c.i === hov ? 1.1 : 1, s = c.m.scale.x + (t - c.m.scale.x) * .15; c.m.scale.setScalar(s); });
-    const f = hov >= 0 ? hov : frontIdx(); if (f !== labI) { labI = f; lab.textContent = D.projects[f].title; go.setAttribute('aria-label', 'Open project: ' + D.projects[f].title); go.dataset.i = f; }
-    renderer.render(scene, cam); };
+    if (!drag) { rot += vel * dt / 16; if (reduce) vel *= .9; else vel += ((hov ? 0 : .0035) - vel) * .03; }
+    ringEl.style.transform = `translateZ(${-R}px) rotateY(${rot}rad)`;
+    const f = front(); if (f !== labI) { labI = f; lab.textContent = D.projects[f].title; go.setAttribute('aria-label', 'Open project: ' + D.projects[f].title); go.dataset.i = f; } };
   requestAnimationFrame(tick);
   go.addEventListener('click', () => openProject(+go.dataset.i || 0));
   $('#theme').addEventListener('click', () => setTimeout(paintAll, 60));
