@@ -336,6 +336,57 @@ html.hero-in #hero .hero-text>*,html.hero-in #hero .stat{animation:heroUp .8s cu
 #intro.calm .ic-card,#intro.calm .ic-card:not(.pick){animation:none}
 #intro.calm .ic-hero{display:none}
 @media (prefers-reduced-transparency:reduce){.card,.stat,details.job,.mail,#menu,#fmenu,.btn,.chip,.sk,.ftab,#q,nav,section.s,#m-box{background:var(--panel);-webkit-backdrop-filter:none;backdrop-filter:none}#modal{background:rgba(8,8,8,.9);-webkit-backdrop-filter:none;backdrop-filter:none}}
+
+/* Studio edition: monochrome editorial look (mono caps, bracketed indices, hairlines, square corners). Theme-scoped, so the other four are untouched. */
+:root[data-theme="studio"]{--bg:#f2f2f0;--panel:#fafaf9;--line:#cfcfcb;--txt:#0d0d0d;--mut:#5b5b57;--live:#157a36;--acc:#0d0d0d;--acct:#0d0d0d;--acc2:#0d0d0d;--accfg:#f2f2f0;--glow:13,13,13;--vw1:#e7e7e4;--vw2:#d6d6d2;--r:4px;--f-display:"IBM Plex Mono",ui-monospace,Menlo,monospace;color-scheme:light}
+:root[data-theme="studio"] body{font-family:var(--f-mono);font-size:15px;counter-reset:sx}
+:root[data-theme="studio"] #hero h1{font-family:var(--f-mono);font-weight:500;text-transform:uppercase;letter-spacing:-.06em;line-height:.9;font-size:clamp(3rem,13.5vw,10.5rem);color:var(--txt)}
+:root[data-theme="studio"] .kick,:root[data-theme="studio"] .tag,:root[data-theme="studio"] .chip,:root[data-theme="studio"] .btn,:root[data-theme="studio"] .ftab{font-family:var(--f-mono);text-transform:uppercase;letter-spacing:.08em;font-weight:500;border-radius:2px;font-size:12px}
+:root[data-theme="studio"] .kick{background:none;border:0;padding:0;color:var(--txt)}
+:root[data-theme="studio"] section.s{counter-increment:sx}
+:root[data-theme="studio"] section.s h2{font-family:var(--f-mono);font-weight:500;text-transform:uppercase;letter-spacing:-.02em;font-size:clamp(1.8rem,5vw,3.4rem);display:flex;align-items:baseline;gap:18px;border-top:1px solid var(--txt);padding-top:14px}
+:root[data-theme="studio"] section.s h2::before{display:inline;content:"[0" counter(sx) "]";background:none;width:auto;height:auto;margin:0;font-size:12px;letter-spacing:.08em;font-weight:400;order:2;margin-left:auto}
+:root[data-theme="studio"] .card,:root[data-theme="studio"] .stat,:root[data-theme="studio"] details.job,:root[data-theme="studio"] .mail,:root[data-theme="studio"] #menu,:root[data-theme="studio"] #fmenu{border-radius:var(--r);box-shadow:none;background:var(--panel);border-color:var(--line);-webkit-backdrop-filter:none;backdrop-filter:none}
+:root[data-theme="studio"] section.s{background:transparent;-webkit-backdrop-filter:none;backdrop-filter:none;border-radius:0}
+:root[data-theme="studio"] .card:hover{border-color:var(--txt)}
+:root[data-theme="studio"] .stat b{font-family:var(--f-mono);font-weight:500;letter-spacing:-.06em;color:var(--txt);text-transform:uppercase}
+:root[data-theme="studio"] .btn.pri,:root[data-theme="studio"] .chip.on,:root[data-theme="studio"] .ftab.on{background:var(--txt);color:var(--bg);border-color:var(--txt);background-image:none}
+:root[data-theme="studio"] nav,:root[data-theme="studio"] .tools{background:color-mix(in srgb,var(--bg) 92%,transparent)}
+:root[data-theme="studio"] .card h3,:root[data-theme="studio"] details.job summary{text-transform:uppercase;letter-spacing:-.01em;font-weight:500}
+
+/* Selected-work reel */
+#reel-view{position:relative;height:clamp(230px,34vh,330px);margin:0 -4px 6px;border-radius:var(--r);overflow:hidden;user-select:none;-webkit-user-select:none}
+#reel-view canvas{width:100%;height:100%;display:block;outline:0}
+.reel-bar{margin-bottom:18px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-top:12px}
+.reel-hint{font-family:var(--f-mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--mut)}
+#reel-go{font:inherit;font-weight:600;color:var(--txt);background:none;border:1px solid var(--line);border-radius:999px;padding:10px 16px;min-height:44px;cursor:pointer;max-width:100%}
+#reel-go:hover{border-color:var(--acc)}#reel-lab{overflow-wrap:anywhere}
+:root[data-theme="studio"] #reel-go{border-radius:2px;text-transform:uppercase;font-family:var(--f-mono);font-weight:500;font-size:12px;letter-spacing:.08em}
+
+/* Motion: once-only, transform/opacity only, off under Reduce Motion */
+@media (prefers-reduced-motion:no-preference){
+html.js section.s h2{position:relative}
+html.js section.s h2::after{content:"";position:absolute;left:0;bottom:-10px;height:3px;width:0;background:var(--acc);border-radius:3px;transition:width .8s .25s cubic-bezier(.2,.8,.2,1)}
+html.js section.s h2.in::after{width:56px}
+:root[data-theme="studio"] section.s h2::after{display:none}
+.card.pre,details.job.pre{opacity:0}
+.card.pop{animation:cardIn .7s cubic-bezier(.2,.8,.2,1) backwards}
+details.job.pop{animation:jobIn .6s cubic-bezier(.2,.8,.2,1) backwards}
+@keyframes cardIn{from{opacity:0;transform:translateY(34px) scale(.96)}}
+@keyframes jobIn{from{opacity:0;transform:translateX(-28px)}}
+.btn.pri{position:relative;overflow:hidden}
+.btn.pri::after{content:"";position:absolute;top:0;bottom:0;left:-60%;width:40%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.38),transparent);transform:skewX(-20deg);pointer-events:none}
+@media(hover:hover){.btn.pri:hover::after{animation:shine .9s ease}}
+@keyframes shine{to{left:130%}}
+.stat{transition:transform .3s cubic-bezier(.2,.8,.2,1),border-color .25s}
+@media(hover:hover){.stat:hover{transform:translateY(-4px)}}
+#modal.open{animation:mFade .25s ease}
+#modal.open #m-box{animation:mRise .45s cubic-bezier(.2,.8,.2,1)}
+@keyframes mFade{from{opacity:0}}
+@keyframes mRise{from{opacity:0;transform:translateY(28px) scale(.98)}}
+.btn.pri.ring{animation:ringPulse 1.6s ease-out 3}
+@keyframes ringPulse{0%{box-shadow:0 0 0 0 rgba(var(--glow),.55)}100%{box-shadow:0 0 0 16px rgba(var(--glow),0)}}
+}
 </style>
 <script type="importmap">
 {"imports":{"three":"./vendor/three.module.min.js","three/addons/":"./vendor/addons/"}}
@@ -376,7 +427,7 @@ const setHash = h => { try { history.replaceState(null, '', h || (location.pathn
 
 /* ---------- Theme: follows the viewer unless the toggle is used ---------- */
 const root = document.documentElement;
-const saved = store.get('theme2'); if (saved === 'light' || saved === 'dark' || saved === 'red' || saved === 'navy') root.dataset.theme = saved;
+const saved = store.get('theme2'); if (saved === 'light' || saved === 'dark' || saved === 'red' || saved === 'navy' || saved === 'studio') root.dataset.theme = saved;
 const effTheme = () => root.dataset.theme || 'dark';  // dark navy and blue is always the first theme; a saved choice overrides it
 
 /* ---------- Render ---------- */
@@ -393,7 +444,7 @@ const NAVIC = {
   contact: NI('<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3.5 7l8.5 6 8.5-6"/>')
 };
 $('#nav').innerHTML = `<b><a class="brand" href="#hero" aria-label="${esc(P.name)}, back to top">${esc(P.name)}</a></b>` + `<a class="l home" href="#hero" aria-label="Home" title="Home"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 11 12 4l8.5 7"/><path d="M5.5 9.8V20h4.2v-5.2h4.6V20h4.2V9.8"/></svg></a>` + sections.map(([id,l])=>`<a class="l" href="#${id}" aria-label="${esc(l)}">${NAVIC[id]||''}<span class="tx">${esc(l)}</span></a>`).join('') + `<button id="theme" aria-label="Change colour theme">◐</button>`;
-const THEMES = [['dark', 'Charcoal, sand and electric blue', '◐'], ['light', 'Forest green and beige', '◑'], ['red', 'Cream, ink and burnt orange', '●'], ['navy', 'Navy, cream and coral', '◆']];
+const THEMES = [['dark', 'Charcoal, sand and electric blue', '◐'], ['light', 'Forest green and beige', '◑'], ['red', 'Cream, ink and burnt orange', '●'], ['navy', 'Navy, cream and coral', '◆'], ['studio', 'Studio: monochrome mono', '▣']];
 const paintThemeBtn = () => { const i = Math.max(0, THEMES.findIndex(t => t[0] === effTheme())), nx = THEMES[(i + 1) % THEMES.length], b = $('#theme');
   b.textContent = THEMES[i][2]; b.title = 'Theme: ' + THEMES[i][1] + '. Click for ' + nx[1] + '.'; b.setAttribute('aria-label', b.title); b.style.color = THEMES[i][0] === 'red' ? 'var(--acc)' : ''; };
 $('#theme').onclick = () => { const i = Math.max(0, THEMES.findIndex(t => t[0] === effTheme())), t = THEMES[(i + 1) % THEMES.length][0]; root.dataset.theme = t; store.set('theme2', t); paintThemeBtn(); };
@@ -434,7 +485,7 @@ const stats = (D.stats||[]).map(s=>{ const to = s.value==='projects'?D.projects.
 $('#hero').insertAdjacentHTML('beforeend', `<div class="wrap hero-stats"><div class="stats">${stats}</div></div>`);
 $('#app').innerHTML =
   sec('about','About',D.about.map(t=>`<p style="max-width:760px;white-space:pre-line">${esc(t).replace(/(^|\n)(Where I am heading:|Next:|Then:|Longer term:)/g, '$1<b style="color:var(--acc)">$2</b>')}</p>`).join('')+`<div>${pills(D.certifications)}</div>`) +
-  sec('projects','Projects',`<div class="tools">${chips}<span class="qwrap"><input id="q" type="search" placeholder="Search projects, tools" aria-label="Search projects"><button id="qclear" type="button" aria-label="Clear search" title="Clear search" hidden>&times;</button></span></div>
+  sec('projects','Projects',`<div id="reel-view" role="group" aria-label="Project reel. Drag to spin, tap a card to open it."></div><div class="reel-bar"><span class="reel-hint">Drag to spin · tap a card to open</span><button id="reel-go" type="button"><span id="reel-lab"></span><span aria-hidden="true"> &rarr;</span></button></div><div class="tools">${chips}<span class="qwrap"><input id="q" type="search" placeholder="Search projects, tools" aria-label="Search projects"><button id="qclear" type="button" aria-label="Clear search" title="Clear search" hidden>&times;</button></span></div>
     <div id="rescount" class="rescount" aria-live="polite"></div><div class="grid" id="grid">${cards}</div><div id="none">No projects match. <button type="button" class="lnk" data-clear>Clear search and filters</button></div>`) +
   sec('experience','Experience',`<div class="tl">${exp}</div>`) +
   sec('skills','Skills',`<div class="skills">${skills}</div><div class="note">Click any skill to see the projects that use it.</div>`) +
@@ -458,6 +509,11 @@ try {
     const items = $$('section.s .wrap > *'); document.documentElement.classList.add('js'); items.forEach(e => e.classList.add('rv'));
     const rio = new IntersectionObserver(es => es.forEach(en => { if (en.isIntersecting) { en.target.classList.add('in'); rio.unobserve(en.target); } }), { threshold: 0.06, rootMargin: '0px 0px -6% 0px' });
     items.forEach(e => rio.observe(e));
+    // Staggered entrance for project cards and experience rows (backwards fill only, so the card tilt's inline transform still wins afterwards).
+    const stag = $$('.card, details.job'); stag.forEach(e => e.classList.add('pre'));
+    const sio = new IntersectionObserver(es => { let k = 0; es.forEach(en => { if (!en.isIntersecting) return; const t = en.target; t.style.animationDelay = Math.min(k++, 8) * 70 + 'ms'; t.classList.add('pop'); t.classList.remove('pre'); sio.unobserve(t); t.addEventListener('animationend', () => { t.classList.remove('pop'); t.style.animationDelay = ''; }, { once: true }); }); }, { threshold: .08 });
+    stag.forEach(e => sio.observe(e));
+    const lk = document.querySelector('#contact .btn.pri'); if (lk) new IntersectionObserver(([en], o) => { if (en.isIntersecting) { lk.classList.add('ring'); o.disconnect(); } }, { threshold: 1 }).observe(lk);
   }
 } catch (e) { document.documentElement.classList.remove('js'); }
 // Opening animation (portfolio cards). Once per browser session, skipped for deep links and Reduce Motion.
@@ -1122,6 +1178,66 @@ addEventListener('hashchange', fromHash); fromHash();
     if (e.key === 'ArrowDown') { e.preventDefault(); it[(i + 1) % it.length].focus(); }
     else if (e.key === 'ArrowUp') { e.preventDefault(); it[(i - 1 + it.length) % it.length].focus(); } });
   addEventListener('keydown', e => { if (e.key === 'Escape' && !menu.hidden) close(true); });
+})();
+
+// ---- Selected-work reel: a ring of project cards you can drag, spin and tap to open. One WebGL context, 2D-canvas textures, paused off-screen. ----
+(() => {
+  const host = $('#reel-view'); if (!host) return;
+  const N = D.projects.length, CW = 360, CH = 450, R = 6.6;
+  const css = n => getComputedStyle(root).getPropertyValue(n).trim();
+  const renderer = newRenderer(1.5); if (!renderer) { host.classList.add('nowebgl'); return; }
+  host.prepend(renderer.domElement); renderer.domElement.setAttribute('aria-hidden', 'true');
+  const scene = new THREE.Scene(), cam = new THREE.PerspectiveCamera(32, 1, .1, 100), ring = new THREE.Group(); scene.add(ring);
+  const cards = D.projects.map((p, i) => { const cv = document.createElement('canvas'); cv.width = CW; cv.height = CH;
+    const tex = new THREE.CanvasTexture(cv); tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 4;
+    const m = new THREE.Mesh(new THREE.PlaneGeometry(2.3, 2.875), new THREE.MeshBasicMaterial({ map: tex, toneMapped: false }));
+    const th = i / N * Math.PI * 2; m.position.set(Math.sin(th) * R, Math.sin(th * 2) * .3, Math.cos(th) * R); m.rotation.y = th; m.rotateZ(Math.sin(th * 2) * .13); m.rotateX(-.04);
+    m.userData = { i, base: 1, img: null }; ring.add(m); return { cv, tex, m, p, i }; });
+  const wrapTxt = (g, t, x, y, w, lh, max) => { const ws = t.split(' '), L = []; let line = ''; for (const w1 of ws) { const test = line ? line + ' ' + w1 : w1; if (g.measureText(test).width > w && line) { L.push(line); line = w1; } else line = test; } L.push(line); if (L.length > max) { L.length = max; let l = L[max - 1]; while (l && g.measureText(l + '…').width > w) l = l.slice(0, -1); L[max - 1] = l.trimEnd() + '…'; } L.forEach((l, k) => g.fillText(l, x, y + k * lh)); };
+  const paint = c => { const g = c.cv.getContext('2d'), mono = css('--f-mono') || 'monospace', body = css('--f-body') || 'Inter, system-ui, sans-serif', studio = root.dataset.theme === 'studio';
+    g.clearRect(0, 0, CW, CH); g.fillStyle = css('--panel') || '#292926'; g.fillRect(0, 0, CW, CH);
+    const gr = g.createLinearGradient(0, 56, CW, 330); gr.addColorStop(0, css('--vw1') || '#2c2c29'); gr.addColorStop(1, css('--vw2') || '#171715'); g.fillStyle = gr; g.fillRect(14, 56, CW - 28, 276);
+    if (c.img) { const s = Math.min((CW - 28) / c.img.width, 276 / c.img.height); const w = c.img.width * s, h = c.img.height * s; g.drawImage(c.img, 14 + (CW - 28 - w) / 2, 56 + (276 - h) / 2, w, h); }
+    g.fillStyle = css('--mut') || '#999'; g.font = '500 15px ' + mono; g.textBaseline = 'alphabetic'; g.fillText('[' + String(c.i + 1).padStart(2, '0') + ']', 16, 36); g.textAlign = 'right'; g.fillText((c.p.tag.split('·')[0] || '').trim().toUpperCase().slice(0, 26), CW - 16, 36); g.textAlign = 'left';
+    g.fillStyle = css('--txt') || '#eee'; g.font = (studio ? '500 24px ' + mono : '700 24px ' + body); wrapTxt(g, studio ? c.p.title.toUpperCase() : c.p.title, 16, 372, CW - 32, 29, 2);
+    g.strokeStyle = css('--line') || '#444'; g.lineWidth = 3; g.strokeRect(1.5, 1.5, CW - 3, CH - 3); c.tex.needsUpdate = true; };
+  const paintAll = () => cards.forEach(paint);
+  paintAll(); document.fonts && document.fonts.ready.then(paintAll);
+  // Render each project's 3D model once into its card, one per slice so scrolling never stalls.
+  let started = false; const bake = () => { if (started) return; started = true; let k = 0;
+    const tr = newRenderer(1); if (!tr) return; tr.setSize(CW - 28, 276, false); const sc = new THREE.Scene(), cm = new THREE.PerspectiveCamera(40, (CW - 28) / 276, .1, 200); addEnv(tr, sc);
+    sc.add(new THREE.HemisphereLight(0xffffff, 0x223344, 1.2)); const sun = new THREE.DirectionalLight(0xffffff, 2.2); sun.position.set(5, 8, 5); sc.add(sun);
+    const step = () => { if (k >= N) { try { tr.dispose(); tr.forceContextLoss(); } catch (e) {} return; } const c = cards[k++], hold = new THREE.Group(); sc.add(hold);
+      try { const o = buildPlaceholder(c.p.placeholder); if (o.userData.fit) o.userData.fit *= .72; cm.position.set(...(o.userData.cam || [5.6, 4.1, 7.6])); cm.lookAt(0, 1.2, 0); fitInto(hold, o); if (o.userData.tick && !reduce) o.userData.tick(.5);
+        tr.render(sc, cm); const im = document.createElement('canvas'); im.width = CW - 28; im.height = 276; im.getContext('2d').drawImage(tr.domElement, 0, 0); c.img = im; paint(c); } catch (e) {}
+      sc.remove(hold); setTimeout(step, 90); };
+    step(); };
+  // Interaction: drag to spin with inertia, tap or click a card to open it.
+  let rot = 0, vel = reduce ? 0 : .0035, drag = null, hov = -1, visible = false, lastT = performance.now();
+  const ray = new THREE.Raycaster(), mouse = new THREE.Vector2();
+  const pick = e => { const r = renderer.domElement.getBoundingClientRect(); mouse.set((e.clientX - r.left) / r.width * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1); ray.setFromCamera(mouse, cam); const h = ray.intersectObjects(cards.map(c => c.m), false)[0]; return h ? h.object.userData.i : -1; };
+  const el = renderer.domElement; el.style.touchAction = 'pan-y'; el.style.cursor = 'grab';
+  el.addEventListener('pointerdown', e => { drag = { x: e.clientX, y: e.clientY, lx: e.clientX, moved: 0, id: e.pointerId }; vel = 0; });
+  addEventListener('pointermove', e => { if (drag && e.pointerId === drag.id) { const dx = e.clientX - drag.lx; drag.lx = e.clientX; drag.moved += Math.abs(dx); if (drag.moved > 6) { try { el.setPointerCapture(e.pointerId); } catch (x) {} el.style.cursor = 'grabbing'; } rot += dx * .006; vel = dx * .006; }
+    else if (e.target === el) { const h = pick(e); if (h !== hov) { hov = h; el.style.cursor = h >= 0 ? 'pointer' : 'grab'; } } });
+  const end = e => { if (!drag || e.pointerId !== drag.id) return; const wasTap = drag.moved <= 6; drag = null; el.style.cursor = hov >= 0 ? 'pointer' : 'grab'; if (wasTap) { const h = pick(e); if (h >= 0) openProject(h); } else if (reduce) vel = 0; else vel = Math.max(-.05, Math.min(.05, vel)); };
+  addEventListener('pointerup', end); addEventListener('pointercancel', () => { drag = null; });
+  el.addEventListener('wheel', () => {}, { passive: true });
+  const lab = $('#reel-lab'), go = $('#reel-go'); let labI = -1;
+  const frontIdx = () => { let b = 0, bz = -9; ring.children.forEach(m => { const z = m.getWorldPosition(new THREE.Vector3()).z; if (z > bz) { bz = z; b = m.userData.i; } }); return b; };
+  const resize = () => { const w = host.clientWidth, h = host.clientHeight; renderer.setSize(w, h, false); cam.aspect = w / h; const d = 13.6 / Math.min(1, cam.aspect * .95 + .1); cam.position.set(0, 1.1, d); cam.lookAt(0, -.75, 0); cam.updateProjectionMatrix(); };
+  new ResizeObserver(resize).observe(host); resize();
+  new IntersectionObserver(([e]) => { visible = e.isIntersecting; if (visible) bake(); }, { rootMargin: '300px' }).observe(host);
+  const tick = now => { requestAnimationFrame(tick); if (!visible || $('#modal').classList.contains('open') || $('#intro') || document.hidden) { lastT = now; return; }
+    const dt = Math.min(50, now - lastT); lastT = now;
+    if (!drag) { if (!reduce) { rot += vel * dt / 16; vel += ((hov >= 0 ? 0 : .0035) - vel) * .03; } else { rot += vel * dt / 16; vel *= .9; } }
+    ring.rotation.y = rot;
+    cards.forEach(c => { const t = c.i === hov ? 1.1 : 1, s = c.m.scale.x + (t - c.m.scale.x) * .15; c.m.scale.setScalar(s); });
+    const f = hov >= 0 ? hov : frontIdx(); if (f !== labI) { labI = f; lab.textContent = D.projects[f].title; go.setAttribute('aria-label', 'Open project: ' + D.projects[f].title); go.dataset.i = f; }
+    renderer.render(scene, cam); };
+  requestAnimationFrame(tick);
+  go.addEventListener('click', () => openProject(+go.dataset.i || 0));
+  $('#theme').addEventListener('click', () => setTimeout(paintAll, 60));
 })();
 </script>
 </body>
