@@ -286,6 +286,16 @@ details.job:hover{box-shadow:var(--e2)}
 .job h3{font-weight:650;letter-spacing:-.015em;font-size:1.1rem}
 .sk{font-weight:500;padding:4px 12px}
 section.s h2::before{display:none}
+.rescount{color:var(--mut);font-size:13px;font-weight:500;margin:-6px 0 14px}
+.lnk{background:none;border:0;padding:0;font:inherit;color:var(--acct);cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+@media(min-width:700px){.tools{position:sticky;top:calc(56px + env(safe-area-inset-top,0px));z-index:6;padding:12px 0;margin-bottom:6px;background:color-mix(in srgb,var(--bg) 90%,transparent);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border-radius:0 0 16px 16px}}
+.card{cursor:pointer}.card button.open,.card a{cursor:pointer}
+.skip{position:fixed;left:12px;top:-60px;z-index:400;padding:10px 16px;border-radius:999px;background:var(--acc);color:var(--accfg);font-weight:600;transition:top .15s}.skip:focus{top:calc(10px + env(safe-area-inset-top,0px));text-decoration:none}
+#totop{position:fixed;right:20px;bottom:20px;z-index:60;width:46px;height:46px;border-radius:50%;display:grid;place-items:center;border:1px solid var(--line);color:var(--txt);cursor:pointer;background:linear-gradient(180deg,var(--g-hi),rgba(255,255,255,0)),color-mix(in srgb,var(--panel) 70%,transparent);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);box-shadow:var(--e1);opacity:0;transform:translateY(12px);pointer-events:none;transition:opacity .25s,transform .25s,border-color .2s}
+#totop.show{opacity:1;transform:none;pointer-events:auto}#totop:hover{border-color:var(--acc)}#totop:active{transform:scale(.94)}
+body.modal-open #totop{display:none}
+@media(max-width:1024px),(hover:none) and (pointer:coarse) and (max-width:1400px){#totop{right:auto;left:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px))}}
+@media(pointer:coarse){.chip,.ftab,.btn,button.open,#q{min-height:44px}.chip,.ftab{display:inline-flex;align-items:center}details.job summary{min-height:44px}}
 html.js .rv{opacity:0;transform:translateY(26px);transition:opacity .75s cubic-bezier(.2,.8,.2,1),transform .75s cubic-bezier(.2,.8,.2,1)}
 html.js .rv.in{opacity:1;transform:none}
 /* Opening animation: project cards sweep along an arc, your name card is picked and zooms into the hero. 2D transforms only (cheap on iPad). Skippable, once per session; calm static version under Reduce Motion. */
@@ -425,16 +435,23 @@ $('#hero').insertAdjacentHTML('beforeend', `<div class="wrap hero-stats"><div cl
 $('#app').innerHTML =
   sec('about','About',D.about.map(t=>`<p style="max-width:760px;white-space:pre-line">${esc(t).replace(/(^|\n)(Where I am heading:|Next:|Then:|Longer term:)/g, '$1<b style="color:var(--acc)">$2</b>')}</p>`).join('')+`<div>${pills(D.certifications)}</div>`) +
   sec('projects','Projects',`<div class="tools">${chips}<span class="qwrap"><input id="q" type="search" placeholder="Search projects, tools" aria-label="Search projects"><button id="qclear" type="button" aria-label="Clear search" title="Clear search" hidden>&times;</button></span></div>
-    <div class="grid" id="grid">${cards}</div><div id="none">No projects match. Clear the search or pick another filter.</div>`) +
+    <div id="rescount" class="rescount" aria-live="polite"></div><div class="grid" id="grid">${cards}</div><div id="none">No projects match. <button type="button" class="lnk" data-clear>Clear search and filters</button></div>`) +
   sec('experience','Experience',`<div class="tl">${exp}</div>`) +
   sec('skills','Skills',`<div class="skills">${skills}</div><div class="note">Click any skill to see the projects that use it.</div>`) +
   sec('education','Education',`<div class="tl">${edu}</div>`) + extra +
-  sec('contact','Contact',`<p>Open to automation, robotics and mechanical engineering roles.</p>
+  sec('contact','Contact',`<p>Open to Robotics &amp; Automation and Mechanical Engineering roles.</p>
     <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center"><a class="btn pri" href="${esc(P.linkedin)}" target="_blank" rel="noopener">Message me on LinkedIn</a></div>
     ${P.formEndpoint ? `<form id="cform" class="cform" style="margin-top:22px;max-width:520px;display:grid;gap:10px"><input name="name" placeholder="Your name" required autocomplete="name"><input name="email" type="email" placeholder="Your email" required autocomplete="email"><textarea name="message" rows="4" placeholder="Message" required></textarea><input name="_gotcha" tabindex="-1" autocomplete="off" style="position:absolute;left:-9999px" aria-hidden="true"><button class="btn pri" type="submit">Send message</button><div class="note" id="cstat" role="status"></div></form>` : ''}
     <div class="note">No email address is published on this site, to keep spam and impersonation out. LinkedIn is the best way to reach me.</div>`);
 $('#foot').textContent = `© ${new Date().getFullYear()} ${P.name}`;
 
+// UX helpers: skip link and back-to-top button.
+document.body.insertAdjacentHTML('afterbegin', '<a class="skip" href="#app">Skip to content</a>');
+$('#app').setAttribute('tabindex', '-1');
+document.body.insertAdjacentHTML('beforeend', '<button id="totop" type="button" aria-label="Back to top" title="Back to top"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>');
+{ const tt = $('#totop'); let tq = false; const upd = () => { tq = false; tt.classList.toggle('show', scrollY > innerHeight * 1.2 && !document.body.classList.contains('modal-open')); };
+  addEventListener('scroll', () => { if (!tq) { tq = true; requestAnimationFrame(upd); } }, { passive: true });
+  tt.onclick = () => scrollTo({ top: 0, behavior: reduce ? 'auto' : 'smooth' }); }
 // Scroll reveal: sections rise in once as they enter the viewport (skipped under Reduce Motion or without IntersectionObserver).
 try {
   if ('IntersectionObserver' in window && !(window.matchMedia && matchMedia('(prefers-reduced-motion:reduce)').matches)) {
@@ -519,10 +536,13 @@ function applyFilter() {
     const okChip = matchCat(p, chip);
     const ok = okChip && (!s || hay(p).includes(s)); c.classList.toggle('hide', !ok); if (ok) n++; });
   $('#none').style.display = n ? 'none' : 'block';
+  const tot = $$('.card').length; $('#rescount').innerHTML = (n === tot) ? `${tot} projects` : `Showing ${n} of ${tot} projects &middot; <button type="button" class="lnk" data-clear>Clear all</button>`;
 }
 const setChip = c => { chip = c; $('#fltbtn').classList.toggle('on', c !== 'All'); $('#fltlabel').textContent = c === 'All' ? 'Filter' : c; $$('#fmenu .mi').forEach(m => m.setAttribute('aria-selected', String(m.dataset.filter === c))); applyFilter(); };
+document.addEventListener('click', e => { if (e.target.closest('[data-clear]')) { q.value = ''; syncQ(); setChip('All'); } });
 const qc = $('#qclear');
 const syncQ = () => { qc.hidden = !q.value; };
+applyFilter();
 q.oninput = () => { syncQ(); applyFilter(); };
 qc.onclick = () => { q.value = ''; syncQ(); applyFilter(); q.focus(); };
 q.addEventListener('keydown', e => { if (e.key === 'Escape' && q.value) { q.value = ''; syncQ(); applyFilter(); } });
@@ -1067,7 +1087,7 @@ function closeModal() { if (history.state && history.state.m) { history.back(); 
 addEventListener('popstate', () => { if (modal.classList.contains('open') && !(history.state && history.state.m)) doClose(); });
 $('#b-spin').onclick = e => { const b = e.currentTarget, on = !b.classList.contains('on'); b.classList.toggle('on', on); b.setAttribute('aria-pressed', on); mv && mv.setSpin(on); };
 $('#b-wire').onclick = e => { const on = !e.target.classList.contains('on'); e.target.classList.toggle('on', on); mv && mv.setWire(on); };
-document.addEventListener('click', e => { const b = e.target.closest('[data-open]'); if (b) openProject(+b.dataset.open); else if (e.target === modal) closeModal(); });
+document.addEventListener('click', e => { const b = e.target.closest('[data-open]'); if (b) openProject(+b.dataset.open); else if (e.target === modal) closeModal(); else { const c = e.target.closest('.card'); if (c && !e.target.closest('a,button,input,summary')) openProject(+c.dataset.i); } });
 addEventListener('keydown', e => { if (!modal.classList.contains('open')) return; if (e.key === 'Escape') closeModal(); if (e.key === 'ArrowRight') openProject(cur + 1); if (e.key === 'ArrowLeft') openProject(cur - 1); });
 const fromHash = () => { const m = location.hash.match(/^#p-(.+)$/); if (!m) return; const i = D.projects.findIndex(p => p.id === decodeURIComponent(m[1])); if (i >= 0 && i !== cur) openProject(i); };
 addEventListener('hashchange', fromHash); fromHash();
