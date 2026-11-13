@@ -18,6 +18,9 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="theme-color" content="#1E1E1C">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23f0480a'/%3E%3Ctext x='32' y='43' font-size='30' font-family='Arial,sans-serif' font-weight='700' text-anchor='middle' fill='white'%3ERM%3C/text%3E%3C/svg%3E">
+<!-- Security: only this site's own code may run; no outside scripts, plugins or form targets. Add a host here before using a new third-party service. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' blob: https:; connect-src 'self' blob: data: https://formspree.io; frame-src https://www.youtube-nocookie.com; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self' https://formspree.io">
+<meta name="referrer" content="strict-origin-when-cross-origin">
 <!-- seo:end -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -584,7 +587,7 @@ $('#app').innerHTML =
   sec('skills','Skills',`<div class="skills">${skills}</div><div class="note">Click any skill to see the projects that use it.</div>`) +
   sec('education','Education',`<div class="tl">${edu}</div>`) + extra +
   sec('contact','Contact',`<div class="ct"><div><p class="lead">Open to Robotics &amp; Automation and Mechanical Engineering roles.</p>
-    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center"><a class="btn pri" href="${esc(P.linkedin)}" target="_blank" rel="noopener">Message me on LinkedIn</a><a class="btn" href="#projects">See the projects</a></div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center"><a class="btn pri" href="${esc(P.linkedin)}" target="_blank" rel="noopener noreferrer">Message me on LinkedIn</a><a class="btn" href="#projects">See the projects</a></div>
     ${P.formEndpoint ? `<form id="cform" class="cform" style="margin-top:22px;max-width:520px;display:grid;gap:10px"><input name="name" placeholder="Your name" required autocomplete="name"><input name="email" type="email" placeholder="Your email" required autocomplete="email"><textarea name="message" rows="4" placeholder="Message" required></textarea><input name="_gotcha" tabindex="-1" autocomplete="off" style="position:absolute;left:-9999px" aria-hidden="true"><button class="btn pri" type="submit">Send message</button><div class="note" id="cstat" role="status"></div></form>` : ''}
     <div class="note">No email address is published on this site, to keep spam and impersonation out. LinkedIn is the best way to reach me.</div></div>
     <dl class="facts"><div><dt>Location</dt><dd>${esc(P.location)}</dd></div>${(D.experience[0] && /Present/i.test(D.experience[0].dates)) ? `<div><dt>Currently</dt><dd>${esc(D.experience[0].role)} · ${esc(D.experience[0].org)}</dd></div>` : ''}<div><dt>Focus</dt><dd>${esc((P.roles||[]).slice(-1)[0] || P.title)}</dd></div>${D.education[0] ? `<div><dt>Studying</dt><dd>${esc(D.education[0].title)}</dd></div>` : ''}</dl></div>`);
@@ -1210,7 +1213,7 @@ function openProject(i) {
     <div><span class="pill ${p.status==='In progress'?'live':''}">${esc(p.status)}</span>${p.dates?`<span class="pill">${esc(p.dates)}</span>`:""}</div>
     <p style="color:var(--mut)">${esc(p.summary)}</p>${ul(p.bullets)}<p>${pills(p.tools)}</p>
     ${csec('Problem', p.problem)}${csec('Approach', p.approach)}${csec('Results', p.results)}${csec('What I learned', p.learned)}
-    ${(p.links||[]).map(l=>`<a class="btn" href="${esc(l.url)}" target="_blank" rel="noopener">${esc(l.label)}</a>`).join('')}`;
+    ${(p.links||[]).map(l=>`<a class="btn" href="${esc(l.url)}" target="_blank" rel="noopener noreferrer">${esc(l.label)}</a>`).join('')}`;
   $('#b-prev').onclick = () => openProject(cur - 1); $('#b-next').onclick = () => openProject(cur + 1); $('#m-close').onclick = closeModal;
   if (mv) mv.dispose(); $('#m-view').innerHTML = '';
   mv = makeViewer($('#m-view'), { placeholder: p.placeholder, model: p.model, interactive: true, spin: !reduce });
