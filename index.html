@@ -473,7 +473,7 @@ details.job summary h3{margin:0 0 4px}
 .facts{margin:0;border:1px solid var(--line);border-radius:16px;padding:6px 20px;background:color-mix(in srgb,var(--panel) 82%,transparent)}
 .facts div{display:grid;grid-template-columns:104px 1fr;gap:12px;padding:13px 0;border-top:1px solid var(--line)}
 .facts div:first-child{border-top:0}
-.facts dt{font:500 11px/1.9 var(--f-mono);letter-spacing:.16em;text-transform:uppercase;color:var(--mut)}
+.facts .solo{display:block}.facts dt{font:500 11px/1.9 var(--f-mono);letter-spacing:.16em;text-transform:uppercase;color:var(--mut)}
 .facts dd{margin:0;color:var(--txt)}
 @media(max-width:800px){.ct{grid-template-columns:1fr;gap:22px}}
 #foot{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}#foot a{color:var(--mut);text-decoration:none}#foot a:hover{color:var(--txt)}
@@ -590,7 +590,7 @@ $('#app').innerHTML =
     <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center"><a class="btn pri" href="${esc(P.linkedin)}" target="_blank" rel="noopener noreferrer">Message me on LinkedIn</a><a class="btn" href="#projects">See the projects</a></div>
     ${P.formEndpoint ? `<form id="cform" class="cform" style="margin-top:22px;max-width:520px;display:grid;gap:10px"><input name="name" placeholder="Your name" required autocomplete="name"><input name="email" type="email" placeholder="Your email" required autocomplete="email"><textarea name="message" rows="4" placeholder="Message" required></textarea><input name="_gotcha" tabindex="-1" autocomplete="off" style="position:absolute;left:-9999px" aria-hidden="true"><button class="btn pri" type="submit">Send message</button><div class="note" id="cstat" role="status"></div></form>` : ''}
     <div class="note">No email address is published on this site, to keep spam and impersonation out. LinkedIn is the best way to reach me.</div></div>
-    <dl class="facts"><div><dt>Location</dt><dd>${esc(P.location)}</dd></div>${(D.experience[0] && /Present/i.test(D.experience[0].dates)) ? `<div><dt>Currently</dt><dd>${esc(D.experience[0].role)} · ${esc(D.experience[0].org)}</dd></div>` : ''}<div><dt>Focus</dt><dd>${esc((P.roles||[]).slice(-1)[0] || P.title)}</dd></div>${D.education[0] ? `<div><dt>Studying</dt><dd>${esc(D.education[0].title)}</dd></div>` : ''}</dl></div>`);
+    <dl class="facts"><div><dt>Location</dt><dd>${esc(P.location)}</dd></div>${(D.experience[0] && /Present/i.test(D.experience[0].dates)) ? `<div><dt>Currently</dt><dd>${esc(D.experience[0].role)} · ${esc(D.experience[0].org)}</dd></div>` : ''}<div><dt>Focus</dt><dd>${esc((P.roles||[]).slice(-1)[0] || P.title)}</dd></div>${D.education[0] ? `<div class="solo"><dd>${esc(D.education[0].title.replace(/^MEng,\s*/, 'Masters in '))}</dd></div>` : ''}</dl></div>`);
 $('#foot').innerHTML = `<span>© ${new Date().getFullYear()} ${esc(P.name)}</span><a href="#hero">Back to top ↑</a>`;
 
 // UX helpers: skip link and back-to-top button.
