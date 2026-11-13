@@ -436,6 +436,45 @@ details.job.pop{animation:jobIn .6s cubic-bezier(.2,.8,.2,1) backwards}
 :root[data-theme="studio"] #hero .btn.pri{-webkit-backdrop-filter:none;backdrop-filter:none;background:var(--txt);border-color:var(--txt);box-shadow:none;border-radius:2px;padding:8px 8px 8px 22px}
 :root[data-theme="studio"] #hero .btn.pri .arw{border-radius:2px;color:var(--txt);background:var(--bg)}
 @media(max-width:900px){#hero .stats{grid-template-columns:repeat(2,1fr)}}
+
+/* ===== Design pass: calmer surfaces behind content, clearer hierarchy ===== */
+:root:root:root section.s{background:color-mix(in srgb,var(--bg) 86%,transparent)}
+@media(min-width:901px){:root:root:root section.s{background:linear-gradient(90deg,color-mix(in srgb,var(--bg) 96%,transparent) 0,color-mix(in srgb,var(--bg) 90%,transparent) 55%,color-mix(in srgb,var(--bg) 50%,transparent) 100%)}}
+@media(max-width:900px){#hero::before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;background:linear-gradient(180deg,color-mix(in srgb,var(--bg) 78%,transparent),color-mix(in srgb,var(--bg) 62%,transparent))}}
+.card{--g-fill:90%}details.job{--g-fill:86%}
+/* numbered section headings */
+main{counter-reset:sec}section.s{counter-increment:sec}
+section.s h2::before{content:counter(sec,decimal-leading-zero);display:block;width:auto;height:auto;background:none;margin-right:0;border-radius:0;font:500 12px/1 var(--f-mono);letter-spacing:.22em;color:var(--acct);margin-bottom:12px}
+/* About */
+.about{max-width:68ch}
+.about p{margin:0 0 14px;color:var(--mut);line-height:1.7}
+.about p.lead{font-size:clamp(1.1rem,1.6vw,1.3rem);color:var(--txt);line-height:1.5;font-weight:500;letter-spacing:-.01em;margin-bottom:20px}
+.lbl{font:500 11px/1 var(--f-mono);letter-spacing:.2em;text-transform:uppercase;color:var(--mut);margin-bottom:12px}
+.road{margin:26px 0;padding:20px 22px;border:1px solid var(--line);border-radius:16px;background:color-mix(in srgb,var(--panel) 82%,transparent)}
+.rd{display:grid;grid-template-columns:112px 1fr;gap:14px;padding:12px 0;border-top:1px solid var(--line);color:var(--mut);line-height:1.6}
+.lbl+.rd{border-top:0;padding-top:0}.rd:last-child{padding-bottom:0}
+.rk{font:500 12px/1.9 var(--f-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--acct)}
+.kit{margin-top:22px}
+@media(max-width:560px){.rd{grid-template-columns:1fr;gap:2px}}
+/* Experience / Education rows: centred toggle, no dead space */
+details.job summary{padding-right:44px}
+details.job summary::after{float:none;position:absolute;right:0;top:50%;transform:translateY(-50%);width:28px;height:28px;display:grid;place-items:center;border:1px solid var(--line);border-radius:50%;font-size:14px;line-height:1}
+details.job summary h3{margin:0 0 4px}
+/* Project cards: tool chips; filter bar scrolls with the page */
+.tl3{display:flex;flex-wrap:wrap;gap:6px}
+.tl3 span{font:500 11px/1 var(--f-mono);letter-spacing:.03em;color:var(--mut);border:1px solid var(--line);border-radius:6px;padding:5px 7px}
+@media(min-width:700px){.tools{position:static}}
+/* Contact */
+.ct{display:grid;grid-template-columns:1.25fr 1fr;gap:36px;align-items:start;max-width:980px}
+.ct p.lead{font-size:clamp(1.1rem,1.6vw,1.3rem);color:var(--txt);font-weight:500;line-height:1.5;margin:0 0 18px}
+.facts{margin:0;border:1px solid var(--line);border-radius:16px;padding:6px 20px;background:color-mix(in srgb,var(--panel) 82%,transparent)}
+.facts div{display:grid;grid-template-columns:104px 1fr;gap:12px;padding:13px 0;border-top:1px solid var(--line)}
+.facts div:first-child{border-top:0}
+.facts dt{font:500 11px/1.9 var(--f-mono);letter-spacing:.16em;text-transform:uppercase;color:var(--mut)}
+.facts dd{margin:0;color:var(--txt)}
+@media(max-width:800px){.ct{grid-template-columns:1fr;gap:22px}}
+#foot{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}#foot a{color:var(--mut);text-decoration:none}#foot a:hover{color:var(--txt)}
+@media(max-width:700px){#totop{display:none}}
 </style>
 <script type="importmap">
 {"imports":{"three":"./vendor/three.module.min.js","three/addons/":"./vendor/addons/"}}
@@ -522,28 +561,34 @@ const cards = D.projects.map((p,i)=>`
     <div class="thumb" data-thumb="${i}" data-open="${i}" title="Open 3D view">${p.image?`<img src="${esc(p.image)}" alt="${esc(p.title)}" loading="lazy">`:''}<span class="badge">3D view${p.media && p.media.length ? ` · ${p.media.length} media` : ''}</span></div>
     <div class="body"><span class="tag">${esc(p.tag)}</span><h3>${esc(p.title)}</h3>
       <div><span class="pill ${p.status==='In progress'?'live':''}">${esc(p.status)}</span>${p.dates?`<span class="pill">${esc(p.dates)}</span>`:""}</div>
-      <div style="color:var(--mut);font-size:15px">${esc(p.summary)}</div>
+      <div style="color:var(--mut);font-size:15px">${esc(p.summary)}</div>${p.tools && p.tools.length ? `<div class="tl3">${p.tools.slice(0,3).map(t=>`<span>${esc(t)}</span>`).join('')}</div>` : ''}
       <button class="open" data-open="${i}">Details &amp; 3D view</button></div>
   </article>`).join('');
 const exp = D.experience.map((j,i)=>`<details class="job${/Present/i.test(j.dates)?' now':''}" ${i===0?'open':''}><summary><h3>${esc(j.role)} · ${esc(j.org)}</h3><div class="meta">${esc([j.place,j.dates].filter(Boolean).join(' · '))}</div></summary>${ul(j.bullets)||'<div class="meta" style="margin-top:8px">Details to add.</div>'}</details>`).join('');
 const skills = D.skills.map(s=>`<div><h4>${esc(s.group)}</h4>${s.items.map(x=>`<button class="sk" data-skill="${esc(x.split(' (')[0])}">${esc(x)}</button>`).join('')}</div>`).join('');
 const edu = D.education.map(e=>`<details class="job"><summary><h3>${esc(e.title)}</h3><div class="meta">${esc(e.school)} · ${esc(e.dates)}</div></summary><div style="color:var(--mut);margin-top:8px">${esc(e.note)}</div></details>`).join('');
 const extra = (D.extra||[]).map((e,i)=>sec('extra'+i,e.title,(e.items||[]).map(x=>`<details class="job" open><summary><h3>${esc(x.heading)}</h3></summary><div style="color:var(--mut);margin-top:8px">${esc(x.text)}</div></details>`).join(''))).join('');
+const aboutHTML = (() => { const out = []; D.about.forEach((t, k) => {
+    if (/^Where I am heading:/.test(t)) out.push(`<div class="road"><div class="lbl">Where I am heading</div>${t.split('\n').slice(1).map(l => { const m = l.match(/^([^:]+):\s*(.*)$/); return m ? `<div class="rd"><span class="rk">${esc(m[1])}</span><span>${esc(m[2])}</span></div>` : ''; }).join('')}</div>`);
+    else if (/^Technical toolkit:/.test(t)) out.push(`<div class="kit"><div class="lbl">Technical toolkit</div><div>${pills(t.replace(/^Technical toolkit:\s*/, '').split('|').map(x => x.trim()))}</div></div>`);
+    else out.push(`<p${k === 0 ? ' class="lead"' : ''}>${esc(t)}</p>`); });
+  return `<div class="about">${out.join('')}<div class="kit"><div class="lbl">Certifications</div><div>${pills(D.certifications)}</div></div></div>`; })();
 const stats = (D.stats||[]).map(s=>{ const to = s.value==='projects'?D.projects.length:s.value; return `<div class="stat"><b data-to="${to}" data-suf="${esc(s.suffix)}">${to}${esc(s.suffix)}</b><span>${esc(s.label)}</span></div>`; }).join('');
 
 $('#hero').insertAdjacentHTML('beforeend', `<div class="wrap hero-stats"><div class="stats">${stats}</div></div>`);
 $('#app').innerHTML =
-  sec('about','About',D.about.map(t=>`<p style="max-width:760px;white-space:pre-line">${esc(t).replace(/(^|\n)(Where I am heading:|Next:|Then:|Longer term:)/g, '$1<b style="color:var(--acc)">$2</b>')}</p>`).join('')+`<div>${pills(D.certifications)}</div>`) +
+  sec('about','About',aboutHTML) +
   sec('projects','Projects',`<div id="reel-view" role="group" aria-label="Project reel. Drag to spin, tap a card to open it."></div><div class="reel-bar"><span class="reel-hint">Drag to spin · tap a card to open</span></div><div class="tools">${chips}<span class="qwrap"><input id="q" type="search" placeholder="Search projects, tools" aria-label="Search projects"><button id="qclear" type="button" aria-label="Clear search" title="Clear search" hidden>&times;</button></span></div>
     <div id="rescount" class="rescount" aria-live="polite"></div><div class="grid" id="grid">${cards}</div><div class="morewrap"><button type="button" id="morebtn" class="btn" hidden></button></div><div id="none">No projects match. <button type="button" class="lnk" data-clear>Clear search and filters</button></div>`) +
   sec('experience','Experience',`<div class="tl">${exp}</div>`) +
   sec('skills','Skills',`<div class="skills">${skills}</div><div class="note">Click any skill to see the projects that use it.</div>`) +
   sec('education','Education',`<div class="tl">${edu}</div>`) + extra +
-  sec('contact','Contact',`<p>Open to Robotics &amp; Automation and Mechanical Engineering roles.</p>
-    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center"><a class="btn pri" href="${esc(P.linkedin)}" target="_blank" rel="noopener">Message me on LinkedIn</a></div>
+  sec('contact','Contact',`<div class="ct"><div><p class="lead">Open to Robotics &amp; Automation and Mechanical Engineering roles.</p>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center"><a class="btn pri" href="${esc(P.linkedin)}" target="_blank" rel="noopener">Message me on LinkedIn</a><a class="btn" href="#projects">See the projects</a></div>
     ${P.formEndpoint ? `<form id="cform" class="cform" style="margin-top:22px;max-width:520px;display:grid;gap:10px"><input name="name" placeholder="Your name" required autocomplete="name"><input name="email" type="email" placeholder="Your email" required autocomplete="email"><textarea name="message" rows="4" placeholder="Message" required></textarea><input name="_gotcha" tabindex="-1" autocomplete="off" style="position:absolute;left:-9999px" aria-hidden="true"><button class="btn pri" type="submit">Send message</button><div class="note" id="cstat" role="status"></div></form>` : ''}
-    <div class="note">No email address is published on this site, to keep spam and impersonation out. LinkedIn is the best way to reach me.</div>`);
-$('#foot').textContent = `© ${new Date().getFullYear()} ${P.name}`;
+    <div class="note">No email address is published on this site, to keep spam and impersonation out. LinkedIn is the best way to reach me.</div></div>
+    <dl class="facts"><div><dt>Location</dt><dd>${esc(P.location)}</dd></div>${(D.experience[0] && /Present/i.test(D.experience[0].dates)) ? `<div><dt>Currently</dt><dd>${esc(D.experience[0].role)} · ${esc(D.experience[0].org)}</dd></div>` : ''}<div><dt>Focus</dt><dd>${esc((P.roles||[]).slice(-1)[0] || P.title)}</dd></div>${D.education[0] ? `<div><dt>Studying</dt><dd>${esc(D.education[0].title)}</dd></div>` : ''}</dl></div>`);
+$('#foot').innerHTML = `<span>© ${new Date().getFullYear()} ${esc(P.name)}</span><a href="#hero">Back to top ↑</a>`;
 
 // UX helpers: skip link and back-to-top button.
 document.body.insertAdjacentHTML('afterbegin', '<a class="skip" href="#app">Skip to content</a>');
