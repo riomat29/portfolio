@@ -1115,7 +1115,7 @@ function buildPlaceholder(type, opts) {
   }
   return g;
 }
-const newRenderer = (cap = 2) => { try { const r = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' }); r.setPixelRatio(Math.min(devicePixelRatio, cap)); return r; } catch (e) { return null; } };
+const newRenderer = (cap = 2, aa = true) => { try { const r = new THREE.WebGLRenderer({ antialias: aa, alpha: true, powerPreference: 'high-performance' }); r.setPixelRatio(Math.min(devicePixelRatio, cap)); return r; } catch (e) { return null; } };
 // Image-based lighting: gives paint, steel and rubber believable reflections
 const addEnv = (renderer, scene) => { try { const pm = new THREE.PMREMGenerator(renderer); scene.environment = pm.fromScene(new RoomEnvironment(), .04).texture; pm.dispose(); } catch (e) {} };
 const fitInto = (holder, o, size = 4.5) => { const b = new THREE.Box3().setFromObject(o), s = b.getSize(new THREE.Vector3()), c = b.getCenter(new THREE.Vector3());
@@ -1124,7 +1124,7 @@ const fitInto = (holder, o, size = 4.5) => { const b = new THREE.Box3().setFromO
 
 /* ---------- Fixed background stage: reacts to scroll + mouse ---------- */
 (() => {
-  const el = $('#stage'), renderer = newRenderer(1.25); if (!renderer) return; el.appendChild(renderer.domElement);
+  const el = $('#stage'), renderer = newRenderer(1.25, false); if (!renderer) return; el.appendChild(renderer.domElement);
   let lostEnv = false; renderer.domElement.addEventListener('webglcontextlost', e => { e.preventDefault(); lostEnv = true; });
   renderer.domElement.addEventListener('webglcontextrestored', () => { if (lostEnv) { lostEnv = false; try { addEnv(renderer, scene); } catch (err) {} } });
   const scene = new THREE.Scene(), cam = new THREE.PerspectiveCamera(38, 1, .1, 200);
@@ -1144,13 +1144,25 @@ const fitInto = (holder, o, size = 4.5) => { const b = new THREE.Box3().setFromO
   addEventListener('resize', resize); resize();
   const clock = new THREE.Clock();
   const modalEl = document.getElementById('modal');
-  (function loop() { requestAnimationFrame(loop); if (document.hidden || modalEl.classList.contains('open') || document.getElementById('intro')) return;
-    const max = document.documentElement.scrollHeight - innerHeight, p = max > 0 ? scrollY / max : 0; sp += (p - sp) * .06;
+  // Perf: this canvas is a full-viewport background, so it must never compete with page scroll. It renders at most 30 fps, and a governor steps resolution/frame rate down if the page still can't hold ~50 fps.
+  const LV = [{ gap: 32, pr: Math.min(devicePixelRatio, 1.25) }, { gap: 32, pr: 1 }, { gap: 45, pr: .8 }, { gap: 66, pr: .6 }];
+  let lv = 0, lastR = 0, lastF = 0, wAcc = 0, wN = 0, born = performance.now(), maxS = 1, lastOp = '';
+  const calcMax = () => { maxS = Math.max(1, document.documentElement.scrollHeight - innerHeight); };
+  calcMax(); addEventListener('resize', calcMax); if ('ResizeObserver' in window) new ResizeObserver(calcMax).observe(document.body);
+  const setLv = n => { lv = n; renderer.setPixelRatio(LV[n].pr); resize(); };
+  setLv(0);
+  (function loop(now) { requestAnimationFrame(loop);
+    if (document.hidden || modalEl.classList.contains('open') || document.getElementById('intro')) { lastF = now; wAcc = wN = 0; return; }
+    const fd = now - lastF; lastF = now;
+    if (now - born > 2500 && lv < LV.length - 1 && fd < 1000) { wAcc += fd; if (++wN >= 45) { if (wAcc / wN > 24) setLv(lv + 1); wAcc = wN = 0; } }
+    if (now - lastR < LV[lv].gap) return;
+    const dt = Math.min(100, now - lastR); lastR = now;
+    const p = scrollY / maxS; sp += (p - sp) * (1 - Math.pow(.94, dt / 16.7));
     const t = clock.getElapsedTime(); if (holder.userData.tick && !reduce) holder.userData.tick(t);
     const a = .7 + sp * Math.PI * 4 + mx * .9, rad = (innerWidth > 900 ? 11.5 : 15) - sp * 2.5, h = 4.2 + sp * 3 - my * 1.5;
     cam.position.set(Math.cos(a) * rad, h, Math.sin(a) * rad); cam.lookAt(0, 1.5, 0);
     dust.rotation.y = t * .02 + sp; renderer.render(scene, cam);
-    el.style.opacity = String(Math.max(.55, 1 - sp * 5)); })();
+    const op = String(Math.max(.55, 1 - sp * 5).toFixed(2)); if (op !== lastOp) { lastOp = op; el.style.opacity = op; } })(performance.now());
   const refogg = () => { scene.fog.color.set(bgNow()); setGrid(); };
   new MutationObserver(refogg).observe(root, { attributes: true, attributeFilter: ['data-theme'] });
 })();
