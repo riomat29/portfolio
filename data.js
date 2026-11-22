@@ -68,7 +68,7 @@ window.PORTFOLIO = {
       ]
     },
     {
-      role: "MEng Candidate, Mechanical & Materials Engineering", org: "Western University", place: "London, ON", dates: "Sep 2025 – Apr 2027 (Expected)",
+      role: "MEng Candidate, Mechanical & Materials Engineering", org: "Western University", place: "London, ON", dates: "May 2025 – Apr 2027 (Expected)",
       bullets: [
         "Concurrently worked part-time as a Mechanical Design Intern.",
         "Designed tooling and assembly fixtures in SolidWorks using DfAM; reached ±5–10% dimensional uniformity across 12 outlet configurations in 3 FDM design-build-test cycles.",
@@ -418,7 +418,7 @@ window.PORTFOLIO = {
   ],
 
   education: [
-    { title: "MEng, Mechanical & Materials Engineering", school: "Western University, London ON", dates: "Sep 2025 – Apr 2027 (Expected)",
+    { title: "MEng, Mechanical & Materials Engineering", school: "Western University, London ON", dates: "May 2025 – Apr 2027 (Expected)",
       note: "Coursework complete. Focus: Robotics & Manufacturing Automation, Systems & Controls, FEM & Solid Mechanics, Advanced CAE & Reverse Engineering, Additive Manufacturing" },
     { title: "Ontario College Graduate Certificate: Applied Manufacturing Management - Design Integration", school: "Conestoga College, Waterloo ON", dates: "Sep 2021 – Dec 2022",
       note: "Design for Manufacture, Lean Systems, Product Development" },
