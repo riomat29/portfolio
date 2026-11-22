@@ -25,6 +25,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<script>/* Theme: each visit starts as either Charcoal & blue or Studio, chosen at random; a theme picked with the toggle sticks for this tab. Runs before first paint. */try{var t=sessionStorage.getItem('theme3');if(!/^(dark|light|red|navy|studio)$/.test(t||''))t=Math.random()<.5?'dark':'studio';document.documentElement.setAttribute('data-theme',t)}catch(e){document.documentElement.setAttribute('data-theme',Math.random()<.5?'dark':'studio')}</script>
 <style>
 /* Layout: fixed 3D scene behind a single scrolling column; sections are translucent panels over it. Dark-first, light via tokens. */
 :root{--live:#4ade80;--bg:#1E1E1C;--panel:#292926;--line:#3d3b36;--txt:#D8CBB3;--mut:#A89E8B;--acc:#2f6bff;--acct:#6f95ff;--acc2:#D8CBB3;--accfg:#ffffff;--glow:47,107,255;--vw1:#2c2c29;--vw2:#171715;--r:16px;
@@ -536,7 +537,7 @@ const setHash = h => { try { history.replaceState(null, '', h || (location.pathn
 
 /* ---------- Theme: follows the viewer unless the toggle is used ---------- */
 const root = document.documentElement;
-const saved = store.get('theme2'); if (saved === 'light' || saved === 'dark' || saved === 'red' || saved === 'navy' || saved === 'studio') root.dataset.theme = saved;
+if (!root.dataset.theme) root.dataset.theme = 'dark';  // set before first paint by the head script: random Charcoal/Studio, or this tab's explicit pick
 const effTheme = () => root.dataset.theme || 'dark';  // dark navy and blue is always the first theme; a saved choice overrides it
 
 /* ---------- Render ---------- */
@@ -556,7 +557,7 @@ $('#nav').innerHTML = `<b><a class="brand" href="#hero" aria-label="${esc(P.name
 const THEMES = [['dark', 'Charcoal, sand and electric blue', '◐'], ['light', 'Forest green and beige', '◑'], ['red', 'Cream, ink and burnt orange', '●'], ['navy', 'Navy, cream and coral', '◆'], ['studio', 'Studio: monochrome mono', '▣']];
 const paintThemeBtn = () => { const i = Math.max(0, THEMES.findIndex(t => t[0] === effTheme())), nx = THEMES[(i + 1) % THEMES.length], b = $('#theme');
   b.textContent = THEMES[i][2]; b.title = 'Theme: ' + THEMES[i][1] + '. Click for ' + nx[1] + '.'; b.setAttribute('aria-label', b.title); b.style.color = THEMES[i][0] === 'red' ? 'var(--acc)' : ''; };
-$('#theme').onclick = () => { const i = Math.max(0, THEMES.findIndex(t => t[0] === effTheme())), t = THEMES[(i + 1) % THEMES.length][0]; root.dataset.theme = t; store.set('theme2', t); paintThemeBtn(); };
+$('#theme').onclick = () => { const i = Math.max(0, THEMES.findIndex(t => t[0] === effTheme())), t = THEMES[(i + 1) % THEMES.length][0]; root.dataset.theme = t; try { sessionStorage.setItem('theme3', t); } catch (e) {} paintThemeBtn(); };
 paintThemeBtn();
 
 $('#hero-text').innerHTML = `
