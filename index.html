@@ -135,12 +135,14 @@ button.open{margin-top:auto;cursor:pointer;background:none;border:1px solid var(
 button.open:hover{border-color:var(--acc);background:color-mix(in srgb,var(--acc) 10%,transparent)}
 #none{display:none;color:var(--mut);padding:30px 0}
 .tl{border-left:2px solid var(--line);margin-left:6px;padding-left:24px;position:relative}
-.trv,.trl{position:absolute;pointer-events:none;opacity:0}
+.trv,.trl{position:absolute;pointer-events:none;opacity:0;transition:opacity .5s}
 .trv,.trl{--c:239,68,68}
-.trv{left:-6px;top:0;width:10px;height:10px;border-radius:50%;background:rgb(var(--c));box-shadow:0 0 0 4px rgba(var(--c),.35),0 0 14px 3px rgba(var(--c),.75);z-index:3}
-.trl{left:-2px;width:2px;background:linear-gradient(to top,transparent,rgb(var(--c)));transform-origin:50% 100%;z-index:2}
+.trv{left:-6px;top:0;width:10px;height:10px;border-radius:50%;background:rgb(var(--c));box-shadow:0 0 0 4px rgba(var(--c),.35),0 0 14px 3px rgba(var(--c),.75);z-index:3;will-change:transform}
+.trl{left:-2px;width:2px;background:linear-gradient(to bottom,rgba(var(--c),.25),rgb(var(--c)));box-shadow:0 0 8px rgba(var(--c),.55);z-index:2}
 details.job{margin-bottom:14px;position:relative;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 18px}
-details.job::before{content:"";position:absolute;left:-31px;top:22px;width:10px;height:10px;border-radius:50%;background:var(--acc)}
+details.job::before{content:"";position:absolute;left:-31px;top:22px;width:10px;height:10px;border-radius:50%;background:var(--acc);transition:background .3s,box-shadow .3s,transform .2s}
+details.job.reached:not(.now)::before{background:rgb(239,68,68);box-shadow:0 0 0 4px rgba(239,68,68,.22)}
+@media(hover:hover){details.job:hover::before{transform:scale(1.35)}}
 details.job.now::before{background:#22c55e;box-shadow:0 0 0 4px rgba(34,197,94,.5),0 0 12px 2px rgba(34,197,94,.55)}
 @keyframes nowblink{0%,100%{opacity:1;box-shadow:0 0 0 4px rgba(34,197,94,.5),0 0 12px 2px rgba(34,197,94,.55)}50%{opacity:.25;box-shadow:0 0 0 7px rgba(34,197,94,0),0 0 0 0 rgba(34,197,94,0)}}
 details.job.now::before{animation:nowblink 1.4s ease-in-out infinite}
@@ -369,8 +371,11 @@ html.hero-in #hero .hero-text>*,html.hero-in #hero .stat{animation:heroUp .8s cu
 #reel-view{position:relative;transform-style:flat;height:clamp(270px,42vh,390px);margin:0 -4px 6px;border-radius:var(--r);overflow:hidden;user-select:none;-webkit-user-select:none}
 #reel-view .reel-ring{position:absolute;left:50%;top:50%;width:0;height:0;transform-style:preserve-3d;will-change:transform}
 #reel-view .rw{position:absolute;left:calc(var(--cw)/-2);top:calc(var(--ch)/-2);width:var(--cw);height:var(--ch);backface-visibility:visible;-webkit-backface-visibility:visible}
-#reel-view .rw::after{content:"";position:absolute;inset:0;background:var(--txt);opacity:var(--ln,0);pointer-events:none}
-#reel-view canvas.rc{width:100%;height:100%;display:block;border-radius:6px;cursor:pointer;transition:filter .2s,transform .25s cubic-bezier(.2,.8,.2,1)}
+#reel-view .rw::after{display:none}
+#reel-view .ecg{position:absolute;left:0;right:0;top:50%;height:60px;margin-top:-30px;overflow:hidden;pointer-events:none;opacity:var(--ec,0);transform:scaleY(calc(1 / var(--sy,1)));-webkit-mask-image:linear-gradient(90deg,transparent,#000 14%,#000 86%,transparent);mask-image:linear-gradient(90deg,transparent,#000 14%,#000 86%,transparent);filter:drop-shadow(0 0 3px rgba(var(--glow),.95))}
+#reel-view .ecg i{position:absolute;left:0;top:0;height:100%;width:calc(100% + 200px);background:var(--acct);-webkit-mask:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='60' viewBox='0 0 200 60'><path d='M0 30H30C34 30 36 22 41 22C46 22 48 30 52 30H66L72 34L80 4L90 56L97 30H118C126 30 128 16 138 16C148 16 150 30 158 30H200' fill='none' stroke='black' stroke-width='2.6' stroke-linejoin='round' stroke-linecap='round'/></svg>") 0 50%/200px 60px repeat-x;mask:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='60' viewBox='0 0 200 60'><path d='M0 30H30C34 30 36 22 41 22C46 22 48 30 52 30H66L72 34L80 4L90 56L97 30H118C126 30 128 16 138 16C148 16 150 30 158 30H200' fill='none' stroke='black' stroke-width='2.6' stroke-linejoin='round' stroke-linecap='round'/></svg>") 0 50%/200px 60px repeat-x;animation:ecgrun 1.4s linear infinite;will-change:transform}
+@keyframes ecgrun{to{transform:translateX(-200px)}}
+#reel-view canvas.rc{width:100%;height:100%;display:block;border-radius:6px;cursor:pointer;opacity:var(--co,1);transition:filter .2s,transform .25s cubic-bezier(.2,.8,.2,1)}
 @media(hover:hover){#reel-view canvas.rc:hover{filter:brightness(1.12);transform:scale(1.04)}}
 .reel-bar{margin-bottom:18px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-top:12px}
 .reel-hint{font-family:var(--f-mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--mut)}
@@ -478,6 +483,19 @@ details.job summary h3{margin:0 0 4px}
 @media(max-width:800px){.ct{grid-template-columns:1fr;gap:22px}}
 #foot{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}#foot a{color:var(--mut);text-decoration:none}#foot a:hover{color:var(--txt)}
 @media(max-width:700px){#totop{display:none}}
+/* 60/30/10 (default theme only): calm background ~60%, a lifted support tone on alternating sections ~30%, accent ~10% and kept for the active/interactive state. */
+:root:not([data-theme="light"]):not([data-theme="red"]):not([data-theme="navy"]):not([data-theme="studio"]){--band:color-mix(in srgb,var(--panel) 78%,var(--line))}
+:root:not([data-theme="light"]):not([data-theme="red"]):not([data-theme="navy"]):not([data-theme="studio"]) #projects.s,:root:not([data-theme="light"]):not([data-theme="red"]):not([data-theme="navy"]):not([data-theme="studio"]) #skills.s,:root:not([data-theme="light"]):not([data-theme="red"]):not([data-theme="navy"]):not([data-theme="studio"]) #contact.s{background:color-mix(in srgb,var(--band) 92%,transparent)}
+@media(min-width:901px){:root:not([data-theme="light"]):not([data-theme="red"]):not([data-theme="navy"]):not([data-theme="studio"]) #projects.s,:root:not([data-theme="light"]):not([data-theme="red"]):not([data-theme="navy"]):not([data-theme="studio"]) #skills.s,:root:not([data-theme="light"]):not([data-theme="red"]):not([data-theme="navy"]):not([data-theme="studio"]) #contact.s{background:linear-gradient(90deg,color-mix(in srgb,var(--band) 96%,transparent) 0,color-mix(in srgb,var(--band) 72%,transparent) 50%,color-mix(in srgb,var(--band) 20%,transparent) 100%)}}
+:root:not([data-theme="light"]):not([data-theme="red"]):not([data-theme="navy"]):not([data-theme="studio"]) details.job::before{background:var(--mut)}
+:root:not([data-theme="light"]):not([data-theme="red"]):not([data-theme="navy"]):not([data-theme="studio"]) details.job.now::before{background:#22c55e}
+:root:not([data-theme="light"]):not([data-theme="red"]):not([data-theme="navy"]):not([data-theme="studio"]) details.job.reached:not(.now)::before{background:rgb(239,68,68)}
+/* Selected role: the ring exists only as a glow pulse every 2s (red for older roles, green for the current one). Opacity-only, so it stays on the compositor. */
+details.job{--rc:239,68,68}details.job.now{--rc:34,197,94}
+details.job::after{content:"";position:absolute;inset:-4px;border-radius:16px;pointer-events:none;opacity:0;border:2px solid rgb(var(--rc));box-shadow:0 0 16px 3px rgba(var(--rc),.8),inset 0 0 12px 1px rgba(var(--rc),.35)}
+@keyframes ringglow{0%{opacity:0}30%{opacity:1}65%,100%{opacity:0}}
+details.job[open]::after,details.job:has(summary:focus-visible)::after{animation:ringglow 2s ease-in-out infinite}
+@media(hover:hover){details.job:hover::after{animation:ringglow 2s ease-in-out infinite}}
 </style>
 <script type="importmap">
 {"imports":{"three":"./vendor/three.module.min.js","three/addons/":"./vendor/addons/"}}
@@ -590,7 +608,7 @@ $('#app').innerHTML =
     <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center"><a class="btn pri" href="${esc(P.linkedin)}" target="_blank" rel="noopener noreferrer">Message me on LinkedIn</a><a class="btn" href="#projects">See the projects</a></div>
     ${P.formEndpoint ? `<form id="cform" class="cform" style="margin-top:22px;max-width:520px;display:grid;gap:10px"><input name="name" placeholder="Your name" required autocomplete="name"><input name="email" type="email" placeholder="Your email" required autocomplete="email"><textarea name="message" rows="4" placeholder="Message" required></textarea><input name="_gotcha" tabindex="-1" autocomplete="off" style="position:absolute;left:-9999px" aria-hidden="true"><button class="btn pri" type="submit">Send message</button><div class="note" id="cstat" role="status"></div></form>` : ''}
     <div class="note">No email address is published on this site, to keep spam and impersonation out. LinkedIn is the best way to reach me.</div></div>
-    <dl class="facts"><div><dt>Location</dt><dd>${esc(P.location)}</dd></div>${(D.experience[0] && /Present/i.test(D.experience[0].dates)) ? `<div><dt>Currently</dt><dd>${esc(D.experience[0].role)} · ${esc(D.experience[0].org)}</dd></div>` : ''}<div><dt>Focus</dt><dd>${esc((P.roles||[]).slice(-1)[0] || P.title)}</dd></div>${D.education[0] ? `<div class="solo"><dd>${esc(D.education[0].title.replace(/^MEng,\s*/, 'Masters in '))}</dd></div>` : ''}</dl></div>`);
+    <dl class="facts"><div><dt>Location</dt><dd>${esc(P.location)}</dd></div>${(D.experience[0] && /Present/i.test(D.experience[0].dates)) ? `<div><dt>Currently</dt><dd>${esc(D.experience[0].role)} · ${esc(D.experience[0].org)}</dd></div>` : ''}<div><dt>Focus</dt><dd>${esc((P.roles && P.roles.length ? P.roles : [P.title]).join(' · '))}</dd></div>${D.education[0] ? `<div class="solo"><dd>${esc(D.education[0].title.replace(/^MEng,\s*/, 'Masters in '))}</dd></div>` : ''}</dl></div>`);
 $('#foot').innerHTML = `<span>© ${new Date().getFullYear()} ${esc(P.name)}</span><a href="#hero">Back to top ↑</a>`;
 
 // UX helpers: skip link and back-to-top button.
@@ -1312,7 +1330,7 @@ addEventListener('hashchange', fromHash); fromHash();
   const css = n => getComputedStyle(root).getPropertyValue(n).trim();
   const ringEl = document.createElement('div'); ringEl.className = 'reel-ring'; host.appendChild(ringEl);
   const cards = D.projects.map((p, i) => { const cv = document.createElement('canvas'); cv.width = CW; cv.height = CH; cv.className = 'rc'; cv.dataset.i = i; cv.setAttribute('role', 'button'); cv.tabIndex = 0; cv.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openProject(i); } }); cv.setAttribute('aria-label', p.title);
-    const w = document.createElement('div'); w.className = 'rw'; w.appendChild(cv); ringEl.appendChild(w); return { cv, w, p, i, img: null }; });
+    const w = document.createElement('div'); w.className = 'rw'; w.appendChild(cv); const ec = document.createElement('div'); ec.className = 'ecg'; ec.setAttribute('aria-hidden', 'true'); ec.innerHTML = '<i></i>'; w.appendChild(ec); ringEl.appendChild(w); return { cv, w, p, i, img: null }; });
   const wrapTxt = (g, t, x, y, w, lh, max) => { const ws = t.split(' '), L = []; let line = ''; for (const w1 of ws) { const test = line ? line + ' ' + w1 : w1; if (g.measureText(test).width > w && line) { L.push(line); line = w1; } else line = test; } L.push(line); if (L.length > max) { L.length = max; let l = L[max - 1]; while (l && g.measureText(l + '…').width > w) l = l.slice(0, -1); L[max - 1] = l.trimEnd() + '…'; } L.forEach((l, k) => g.fillText(l, x, y + k * lh)); };
   const paint = c => { const g = c.cv.getContext('2d'), mono = css('--f-mono') || 'monospace', body = css('--f-body') || 'Inter, system-ui, sans-serif', studio = root.dataset.theme === 'studio';
     g.clearRect(0, 0, CW, CH); g.fillStyle = css('--panel') || '#292926'; g.fillRect(0, 0, CW, CH);
@@ -1340,8 +1358,10 @@ addEventListener('hashchange', fromHash); fromHash();
   const place = () => { if (ringMode) { ringEl.style.transform = `translateZ(${-R}px) rotateY(${rot}rad)`;
       // Cards that swing to the back collapse into a thin line behind the others, and unfold back into cards as they return to the front.
       const minY = 3 / (parseFloat(host.style.getPropertyValue('--ch')) || 300);
-      cards.forEach(c => { const th = c.i * STEP; let v = (Math.cos(th + rot) + .1) / .55; v = v < 0 ? 0 : v > 1 ? 1 : v; v = v * v * (3 - 2 * v);
-        c.w.style.transform = `rotateY(${th}rad) translateZ(${R}px) rotateZ(${(Math.sin(th * 2) * 7).toFixed(2)}deg) scaleY(${Math.max(minY, v).toFixed(3)})`; c.w.style.opacity = (.55 + .45 * v).toFixed(2); c.w.style.setProperty('--ln', ((1 - v) * .75).toFixed(2)); });
+      // The collapsed back card shows an ECG heartbeat trace in place of the flat line; the trace element cancels the card's squash (--sy) so it keeps its full height.
+      cards.forEach(c => { const th = c.i * STEP; let v = (Math.cos(th + rot) + .1) / .55; v = v < 0 ? 0 : v > 1 ? 1 : v; v = v * v * (3 - 2 * v); const sy = Math.max(minY, v);
+        c.w.style.transform = `rotateY(${th}rad) translateZ(${R}px) rotateZ(${(Math.sin(th * 2) * 7).toFixed(2)}deg) scaleY(${sy.toFixed(3)})`;
+        c.w.style.setProperty('--sy', sy.toFixed(3)); c.w.style.setProperty('--ec', Math.max(0, 1 - v * 1.4).toFixed(2)); c.w.style.setProperty('--co', ((.55 + .45 * v) * Math.min(1, v * 2.5)).toFixed(2)); });
       return; } ringEl.style.transform = 'none'; cards.forEach(c => { const th = rot + c.i * STEP, ph = th * 3 - wt,
       x = Ax * Math.sin(th), z = Az * Math.sin(2 * th), y = Ay * Math.sin(ph),
       dx = Ax * Math.cos(th), dz = 2 * Az * Math.cos(2 * th), dy = 3 * Ay * Math.cos(ph),
@@ -1372,24 +1392,26 @@ addEventListener('hashchange', fromHash); fromHash();
   $('#theme').addEventListener('click', () => setTimeout(paintAll, 60));
 })();
 
-// Career timeline: a red dot travels from the oldest role up to the current one (green glow) once, then stops there and fades.
-try { const tl = document.querySelector('#experience .tl'); const jobs = tl ? [...tl.querySelectorAll('details.job')] : [], nowJ = tl && tl.querySelector('details.job.now'), oldJ = jobs[jobs.length - 1];
-  if (tl && nowJ && oldJ && nowJ !== oldJ && tl.animate && !(false)) {
+// Career timeline: a red line grows down the timeline as you scroll, lighting each role's dot as it passes mid-screen; hovering, focusing or opening a role moves the marker to it. Turns green at the current role. It only runs frames while the marker is moving.
+try { const tl = document.querySelector('#experience .tl'); const jobs = tl ? [...tl.querySelectorAll('details.job')] : [];
+  if (tl && jobs.length > 1) {
     const dot = document.createElement('i'), trail = document.createElement('i'); dot.className = 'trv'; trail.className = 'trl'; dot.setAttribute('aria-hidden', 'true'); trail.setAttribute('aria-hidden', 'true'); tl.append(trail, dot);
-    const yc = el => el.offsetTop + 22 + 5;
-    new IntersectionObserver(([en], o) => { if (!en.isIntersecting) return; o.disconnect(); setTimeout(() => {
-      // Positions are re-measured whenever rows open, close or reflow, so the dot always runs from the oldest row to the current one, however much is expanded.
-      const CLIMB = 12000, CYC = 13500, e = CLIMB / CYC, ez = x => x * x * (3 - 2 * x); let y0 = 0, y1 = 0, vis = true, t = 0, last = performance.now();
-      const measure = () => { y0 = yc(oldJ); y1 = yc(nowJ); trail.style.top = y1 + 'px'; trail.style.height = Math.max(0, y0 - y1) + 'px'; };
-      measure(); new ResizeObserver(measure).observe(tl); jobs.forEach(j => j.addEventListener('toggle', measure)); addEventListener('load', measure); document.fonts && document.fonts.ready.then(measure);
-      new IntersectionObserver(([en]) => { vis = en.isIntersecting; last = performance.now(); }).observe(tl);
-      const frame = now => { requestAnimationFrame(frame); const dt = Math.min(50, now - last); last = now; if (!vis || document.hidden) return; t = (t + dt) % CYC; const u = t / CYC; let y = y0, o = 0, p = 0, to = 0;
-        if (u < .03) { o = u / .03; } else if (u < e) { p = ez((u - .03) / (e - .03)); y = y0 + (y1 - y0) * p; o = 1; } else if (u < e + .03) { y = y1; p = 1; o = 1 - (u - e) / .03; } else { y = y1; p = 1; o = 0; }
-        to = u < e ? .9 : u < e + .05 ? .9 * (1 - (u - e) / .05) : 0;
-        const m = Math.max(0, Math.min(1, (p - .86) / .12)), c = [239 + (34 - 239) * m, 68 + (197 - 68) * m, 68 + (94 - 68) * m].map(Math.round).join(','); dot.style.setProperty('--c', c); trail.style.setProperty('--c', c);
-        dot.style.transform = `translateY(${y - 5}px)`; dot.style.opacity = o; trail.style.transform = `scaleY(${p})`; trail.style.opacity = to; };
-      requestAnimationFrame(frame);
-    }, 600); }, { threshold: 0, rootMargin: '0px 0px -30% 0px' }).observe(tl);
+    const yc = el => el.offsetTop + 22 + 5; let cur = yc(jobs[0]), idx = 0, hov = null, kb = null, raf = 0, shown = false;
+    const pick = () => { if (hov) return jobs.indexOf(hov); const mid = innerHeight * .5; let k = 0; jobs.forEach((j, i) => { if (j.getBoundingClientRect().top + 27 <= mid) k = i; }); return k; };
+    const draw = () => { raf = 0; const y0 = yc(jobs[0]), want = yc(jobs[idx]); cur += (want - cur) * .2; if (Math.abs(want - cur) < .4) cur = want;
+      const m = Math.max(0, Math.min(1, 1 - (cur - y0) / 36)), c = [239 + (34 - 239) * m, 68 + (197 - 68) * m, 68 + (94 - 68) * m].map(Math.round).join(',');
+      dot.style.setProperty('--c', c); trail.style.setProperty('--c', c); dot.style.transform = `translateY(${cur - 5}px)`; trail.style.top = y0 + 'px'; trail.style.height = Math.max(0, cur - y0) + 'px';
+      jobs.forEach((j, i) => j.classList.toggle('reached', i <= idx && yc(j) <= cur + 1));
+      if (!shown) { shown = true; dot.style.opacity = trail.style.opacity = 1; }
+      if (cur !== want) raf = requestAnimationFrame(draw); };
+    const upd = () => { const n = pick(); if (n !== idx) idx = n; if (!raf) raf = requestAnimationFrame(draw); };
+    let sq = false; addEventListener('scroll', () => { if (!sq) { sq = true; requestAnimationFrame(() => { sq = false; upd(); }); } }, { passive: true });
+    addEventListener('resize', upd);
+    jobs.forEach(j => {
+      j.addEventListener('toggle', () => { if (j.open) jobs.forEach(o => { if (o !== j && o.open) o.open = false; }); upd(); });
+      j.addEventListener('pointerenter', e => { if (e.pointerType === 'mouse') { hov = j; upd(); } }); j.addEventListener('pointerleave', e => { if (e.pointerType === 'mouse') { hov = null; upd(); } });
+      j.addEventListener('focusin', e => { if (e.target.matches && e.target.matches(':focus-visible')) { kb = j; hov = j; upd(); } }); j.addEventListener('focusout', () => { if (kb === j) { kb = null; if (hov === j) hov = null; upd(); } }); });
+    new IntersectionObserver(([en]) => { if (en.isIntersecting) upd(); }, { threshold: 0 }).observe(tl); upd();
   } } catch (e) {}
 </script>
 </body>
