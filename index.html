@@ -373,8 +373,8 @@ html.hero-in #hero .hero-text>*,html.hero-in #hero .stat{animation:heroUp .8s cu
 #reel-view .reel-ring{position:absolute;left:50%;top:50%;width:0;height:0;transform-style:preserve-3d;will-change:transform}
 #reel-view .rw{position:absolute;left:calc(var(--cw)/-2);top:calc(var(--ch)/-2);width:var(--cw);height:var(--ch);backface-visibility:visible;-webkit-backface-visibility:visible}
 #reel-view .rw::after{display:none}
-#reel-view .ecg{position:absolute;left:0;right:0;top:50%;height:60px;margin-top:-30px;overflow:hidden;pointer-events:none;opacity:var(--ec,0);transform:scaleY(calc(1 / var(--sy,1)));-webkit-mask-image:linear-gradient(90deg,transparent,#000 14%,#000 86%,transparent);mask-image:linear-gradient(90deg,transparent,#000 14%,#000 86%,transparent);filter:drop-shadow(0 0 3px rgba(var(--glow),.95))}
-#reel-view .ecg i{position:absolute;left:0;top:0;height:100%;width:calc(100% + 200px);background:var(--acct);-webkit-mask:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='60' viewBox='0 0 200 60'><path d='M0 30H30C34 30 36 22 41 22C46 22 48 30 52 30H66L72 34L80 4L90 56L97 30H118C126 30 128 16 138 16C148 16 150 30 158 30H200' fill='none' stroke='black' stroke-width='2.6' stroke-linejoin='round' stroke-linecap='round'/></svg>") 0 50%/200px 60px repeat-x;mask:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='60' viewBox='0 0 200 60'><path d='M0 30H30C34 30 36 22 41 22C46 22 48 30 52 30H66L72 34L80 4L90 56L97 30H118C126 30 128 16 138 16C148 16 150 30 158 30H200' fill='none' stroke='black' stroke-width='2.6' stroke-linejoin='round' stroke-linecap='round'/></svg>") 0 50%/200px 60px repeat-x;animation:ecgrun 1.4s linear infinite;will-change:transform}
+#reel-view .ecg{position:absolute;left:0;right:0;top:50%;height:60px;margin-top:-30px;overflow:hidden;pointer-events:none;opacity:var(--ec,0);transform:scaleY(calc(1 / var(--sy,1)));-webkit-mask-image:linear-gradient(90deg,transparent,#000 14%,#000 86%,transparent);mask-image:linear-gradient(90deg,transparent,#000 14%,#000 86%,transparent);}
+#reel-view .ecg i{position:absolute;left:0;top:0;height:100%;width:calc(100% + 200px);background:var(--acct);-webkit-mask:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='60' viewBox='0 0 200 60'><path d='M0 30H30C34 30 36 22 41 22C46 22 48 30 52 30H66L72 34L80 4L90 56L97 30H118C126 30 128 16 138 16C148 16 150 30 158 30H200' fill='none' stroke='black' stroke-width='3.4' stroke-linejoin='round' stroke-linecap='round'/></svg>") 0 50%/200px 60px repeat-x;mask:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='60' viewBox='0 0 200 60'><path d='M0 30H30C34 30 36 22 41 22C46 22 48 30 52 30H66L72 34L80 4L90 56L97 30H118C126 30 128 16 138 16C148 16 150 30 158 30H200' fill='none' stroke='black' stroke-width='3.4' stroke-linejoin='round' stroke-linecap='round'/></svg>") 0 50%/200px 60px repeat-x;animation:ecgrun 1.4s linear infinite;will-change:transform}
 @keyframes ecgrun{to{transform:translateX(-200px)}}
 #reel-view canvas.rc{width:100%;height:100%;display:block;border-radius:6px;cursor:pointer;opacity:var(--co,1);transition:filter .2s,transform .25s cubic-bezier(.2,.8,.2,1)}
 @media(hover:hover){#reel-view canvas.rc:hover{filter:brightness(1.12);transform:scale(1.04)}}
@@ -1213,15 +1213,19 @@ function makeViewer(container, { model, placeholder, interactive = false, spin =
     setSpin(on) { spinOn = on; },
     dispose() { alive = false; cancelAnimationFrame(raf); ro.disconnect(); vio.disconnect(); renderer.dispose(); try { renderer.forceContextLoss(); } catch (e) {} renderer.domElement.remove(); } };
 }
+// Scroll-aware scheduler: building WebGL viewers and baking thumbnails stalls the main thread (shader compile, geometry, GPU read-back), so that work waits until scrolling has paused for ~160 ms instead of landing mid-scroll.
+let scrolling = false, scTimer = 0; const scrollWaiters = [];
+addEventListener('scroll', () => { scrolling = true; clearTimeout(scTimer); scTimer = setTimeout(() => { scrolling = false; scrollWaiters.splice(0).forEach(f => f()); }, 160); }, { passive: true });
+const whenScrollIdle = f => { if (scrolling) scrollWaiters.push(f); else f(); };
 // One live 3D context per visible thumbnail only: browsers cap WebGL contexts (about 16), so release a card's viewer once it scrolls well off screen and rebuild it when it returns.
 const thumbViewers = new Map(), thumbQueue = []; let thumbBusy = false;
 // Building a viewer (WebGL context + geometry) is the heavy step, so do it one at a time between frames rather than in the middle of a scroll.
 const pumpThumbs = () => { if (thumbBusy) return; const el = thumbQueue.shift(); if (!el) return; thumbBusy = true;
-  setTimeout(() => { const p = D.projects[+el.dataset.thumb];
+  setTimeout(() => whenScrollIdle(() => { const p = D.projects[+el.dataset.thumb];
     // Browsers allow only ~16 WebGL contexts and silently kill the oldest (the project reel!), so keep thumbnail viewers to 10 and evict the one furthest from the viewport.
     if (thumbViewers.size >= (matchMedia('(pointer:coarse)').matches ? 6 : 10)) { let far = null, fd = innerHeight / 2 + 500; thumbViewers.forEach((v, e2) => { const r = e2.getBoundingClientRect(), d = Math.abs(r.top + r.height / 2 - innerHeight / 2); if (d > fd) { fd = d; far = e2; } });
       if (far) { thumbViewers.get(far).dispose(); thumbViewers.delete(far); } else { thumbBusy = false; if (el.dataset.want === '1') setTimeout(() => { thumbQueue.push(el); pumpThumbs(); }, 500); return; } }
-    if (!thumbViewers.has(el) && el.dataset.want === '1') thumbViewers.set(el, makeViewer(el, { placeholder: p.placeholder, model: p.model })); thumbBusy = false; pumpThumbs(); }, 120); };
+    if (!thumbViewers.has(el) && el.dataset.want === '1') thumbViewers.set(el, makeViewer(el, { placeholder: p.placeholder, model: p.model })); thumbBusy = false; pumpThumbs(); }), 120); };
 const tIO = new IntersectionObserver(es => es.forEach(e => { const el = e.target, p = D.projects[+el.dataset.thumb]; if (p.image) return;
   if (e.isIntersecting) { el.dataset.want = '1'; if (!thumbViewers.has(el) && !thumbQueue.includes(el)) { thumbQueue.push(el); pumpThumbs(); } } }), { rootMargin: '500px' });
 // Release a card's viewer only once it is well away (browsers cap WebGL contexts, about 16), so cards near the viewport are never rebuilt mid-scroll.
@@ -1346,11 +1350,13 @@ addEventListener('hashchange', fromHash); fromHash();
   let started = false; const bake = () => { if (started) return; started = true; let k = 0;
     const tr = newRenderer(1); if (!tr) return; tr.setSize(CW - 28, 276, false); const sc = new THREE.Scene(), cm = new THREE.PerspectiveCamera(40, (CW - 28) / 276, .1, 200); addEnv(tr, sc);
     sc.add(new THREE.HemisphereLight(0xffffff, 0x223344, 1.2)); const sun = new THREE.DirectionalLight(0xffffff, 2.2); sun.position.set(5, 8, 5); sc.add(sun);
-    const step = () => { if (k >= N) { try { tr.dispose(); tr.forceContextLoss(); } catch (e) {} return; } const c = cards[k++], hold = new THREE.Group(); sc.add(hold);
+    const step = () => { if (scrolling) { scrollWaiters.push(step); return; } if (k >= N) { try { tr.dispose(); tr.forceContextLoss(); } catch (e) {} return; } const c = cards[k++], hold = new THREE.Group(); sc.add(hold);
       try { const o = buildPlaceholder(c.p.placeholder); if (o.userData.fit) o.userData.fit *= .72; cm.position.set(...(o.userData.cam || [5.6, 4.1, 7.6])); cm.lookAt(0, 1.2, 0); fitInto(hold, o); if (o.userData.tick && !reduce) o.userData.tick(.5);
         tr.render(sc, cm); const im = document.createElement('canvas'); im.width = CW - 28; im.height = 276; im.getContext('2d').drawImage(tr.domElement, 0, 0); c.img = im; paint(c); } catch (e) {}
       sc.remove(hold); setTimeout(step, 90); };
     step(); };
+  // Start baking once the intro is over and the page is still, so it is done before anyone scrolls down to the projects.
+  const bakeSoon = setInterval(() => { if (!$('#intro')) { clearInterval(bakeSoon); setTimeout(() => whenScrollIdle(bake), 900); } }, 300);
   // Dragon path: the cards follow a figure-eight through depth (x = Ax sin t, z = Az sin 2t), so the body weaves in front of and behind itself.
   // A wave ripples along the body (y), and each card banks and turns along the path like a scale.
   let rot = 0, vel = .004, drag = null, visible = false, hov = false, lastT = performance.now(), Ax = 400, Az = 200, Ay = 40, wt = 0;
@@ -1362,7 +1368,7 @@ addEventListener('hashchange', fromHash); fromHash();
       // The collapsed back card shows an ECG heartbeat trace in place of the flat line; the trace element cancels the card's squash (--sy) so it keeps its full height.
       cards.forEach(c => { const th = c.i * STEP; let v = (Math.cos(th + rot) + .1) / .55; v = v < 0 ? 0 : v > 1 ? 1 : v; v = v * v * (3 - 2 * v); const sy = Math.max(minY, v);
         c.w.style.transform = `rotateY(${th}rad) translateZ(${R}px) rotateZ(${(Math.sin(th * 2) * 7).toFixed(2)}deg) scaleY(${sy.toFixed(3)})`;
-        c.w.style.setProperty('--sy', sy.toFixed(3)); c.w.style.setProperty('--ec', Math.max(0, 1 - v * 1.4).toFixed(2)); c.w.style.setProperty('--co', ((.55 + .45 * v) * Math.min(1, v * 2.5)).toFixed(2)); });
+        c.w.style.setProperty('--sy', sy.toFixed(3)); const ecv = Math.max(0, 1 - v * 1.4); c.w.style.setProperty('--ec', ecv.toFixed(2)); const eon = ecv > .02; if (c.eon !== eon) { c.eon = eon; c.w.lastElementChild.style.visibility = eon ? 'visible' : 'hidden'; } c.w.style.setProperty('--co', ((.55 + .45 * v) * Math.min(1, v * 2.5)).toFixed(2)); });
       return; } ringEl.style.transform = 'none'; cards.forEach(c => { const th = rot + c.i * STEP, ph = th * 3 - wt,
       x = Ax * Math.sin(th), z = Az * Math.sin(2 * th), y = Ay * Math.sin(ph),
       dx = Ax * Math.cos(th), dz = 2 * Az * Math.cos(2 * th), dy = 3 * Ay * Math.cos(ph),
